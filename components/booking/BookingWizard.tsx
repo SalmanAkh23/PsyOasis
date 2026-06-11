@@ -12,8 +12,7 @@ const STEPS = ['Psikolog', 'Layanan', 'Tanggal', 'Jam', 'Data Diri', 'Ringkasan'
 
 export default function BookingWizard() {
   const [currentStep, setCurrentStep] = useState(1);
-  
-  // Form State
+
   const [formData, setFormData] = useState({
     psychologistId: '',
     psychologistName: '',
@@ -37,54 +36,54 @@ export default function BookingWizard() {
     switch (currentStep) {
       case 1:
         return (
-          <Step1Psychologist 
-            selectedId={formData.psychologistId} 
-            onSelect={(id, name) => setFormData({...formData, psychologistId: id, psychologistName: name})} 
-            onNext={nextStep} 
+          <Step1Psychologist
+            selectedId={formData.psychologistId}
+            onSelect={(id, name) => setFormData({...formData, psychologistId: id, psychologistName: name})}
+            onNext={nextStep}
           />
         );
       case 2:
         return (
-          <Step2Service 
-            selectedId={formData.serviceId} 
-            onSelect={(id, name) => setFormData({...formData, serviceId: id, serviceName: name})} 
-            onNext={nextStep} 
-            onPrev={prevStep} 
+          <Step2Service
+            selectedId={formData.serviceId}
+            onSelect={(id, name) => setFormData({...formData, serviceId: id, serviceName: name})}
+            onNext={nextStep}
+            onPrev={prevStep}
           />
         );
       case 3:
         return (
-          <Step3Date 
-            selectedDate={formData.date} 
-            onSelect={(date) => setFormData({...formData, date})} 
-            onNext={nextStep} 
-            onPrev={prevStep} 
+          <Step3Date
+            selectedDate={formData.date}
+            onSelect={(date) => setFormData({...formData, date})}
+            onNext={nextStep}
+            onPrev={prevStep}
           />
         );
       case 4:
         return (
-          <Step4Time 
-            selectedTime={formData.time} 
-            onSelect={(time) => setFormData({...formData, time})} 
-            onNext={nextStep} 
-            onPrev={prevStep} 
+          <Step4Time
+            selectedTime={formData.time}
+            onSelect={(time) => setFormData({...formData, time})}
+            onNext={nextStep}
+            onPrev={prevStep}
           />
         );
       case 5:
         return (
-          <Step5Info 
-            info={formData.info} 
-            onChange={(info) => setFormData({...formData, info})} 
-            onNext={nextStep} 
-            onPrev={prevStep} 
+          <Step5Info
+            info={formData.info}
+            onChange={(info) => setFormData({...formData, info})}
+            onNext={nextStep}
+            onPrev={prevStep}
           />
         );
       case 6:
         return (
-          <Step6Summary 
-            formData={formData} 
-            onNext={nextStep} 
-            onPrev={prevStep} 
+          <Step6Summary
+            formData={formData}
+            onNext={nextStep}
+            onPrev={prevStep}
           />
         );
       case 7:
@@ -95,20 +94,16 @@ export default function BookingWizard() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto bg-white/75 backdrop-blur-md p-6 md:p-10 rounded-3xl border border-[#709085]/15 shadow-[0_8px_50px_rgba(74,122,150,0.12)] relative overflow-hidden">
-      {/* Decorative gradients */}
-      <div className="absolute -top-32 -right-32 w-64 h-64 bg-[#4A7A96]/6 rounded-full blur-[80px] pointer-events-none" />
-      <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-[#709085]/6 rounded-full blur-[80px] pointer-events-none" />
-
+    <div className="w-full max-w-4xl mx-auto bg-white rounded-3xl border border-[#D9E2DC] shadow-[0_4px_24px_rgba(0,0,0,0.06)] p-8 md:p-10">
       {currentStep < 7 && (
-        <ProgressStepper 
-          currentStep={currentStep} 
-          totalSteps={STEPS.length - 1} // Don't show success as a trackable step in the bar
-          stepNames={STEPS.slice(0, -1)} 
+        <ProgressStepper
+          currentStep={currentStep}
+          totalSteps={STEPS.length - 1}
+          stepNames={STEPS.slice(0, -1)}
         />
       )}
-      
-      <div className="relative z-10 min-h-[400px]">
+
+      <div className="min-h-[400px]">
         {renderStep()}
       </div>
     </div>

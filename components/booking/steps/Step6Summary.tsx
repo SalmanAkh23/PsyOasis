@@ -46,60 +46,56 @@ export default function Step6Summary({ formData, onNext, onPrev }: Step6Props) {
 
   return (
     <div className="animate-fade-in-up">
-      <h3 className="text-2xl font-bold font-space text-[#1E293B] mb-2">Ringkasan Booking</h3>
-      <p className="text-[#64748B] mb-8 text-sm">Pastikan semua data di bawah ini sudah benar sebelum mengkonfirmasi.</p>
+      <h3 className="text-2xl font-bold font-space text-[#2D3732] mb-2">Ringkasan Booking</h3>
+      <p className="text-[#2D3732]/55 mb-8 text-sm">Pastikan semua data di bawah ini sudah benar sebelum mengkonfirmasi.</p>
 
-      <div className="bg-white p-6 rounded-3xl border border-[#E5E7EB] mb-8 relative overflow-hidden shadow-sm">
+      <div className="bg-white p-6 rounded-3xl border border-[#D9E2DC] mb-8">
 
         <div className="flex flex-col gap-6">
-          {/* Section: Layanan & Waktu */}
-          <div className="grid grid-cols-2 gap-4 pb-6 border-b border-[#E5E7EB]">
+          <div className="grid grid-cols-2 gap-4 pb-6 border-b border-[#D9E2DC]">
             <div>
-              <div className="text-[10px] text-[#64748B] uppercase tracking-widest font-space mb-1">Layanan</div>
-              <div className="text-sm font-bold text-[#1E293B]">{formData.serviceName}</div>
+              <div className="text-[10px] text-[#2D3732]/50 uppercase tracking-widest font-space mb-1">Layanan</div>
+              <div className="text-sm font-bold text-[#2D3732]">{formData.serviceName}</div>
             </div>
             <div>
-              <div className="text-[10px] text-[#64748B] uppercase tracking-widest font-space mb-1">Metode</div>
-              <div className="text-sm font-bold text-[#1E293B]">{formData.info.mode}</div>
+              <div className="text-[10px] text-[#2D3732]/50 uppercase tracking-widest font-space mb-1">Metode</div>
+              <div className="text-sm font-bold text-[#2D3732]">{formData.info.mode}</div>
             </div>
             <div>
-              <div className="text-[10px] text-[#64748B] uppercase tracking-widest font-space mb-1">Tanggal</div>
-              <div className="text-sm font-bold text-[#1E293B]">{formData.date}</div>
+              <div className="text-[10px] text-[#2D3732]/50 uppercase tracking-widest font-space mb-1">Tanggal</div>
+              <div className="text-sm font-bold text-[#2D3732]">{formData.date}</div>
             </div>
             <div>
-              <div className="text-[10px] text-[#64748B] uppercase tracking-widest font-space mb-1">Jam</div>
-              <div className="text-sm font-bold text-[#1E293B]">{formData.time} WIB</div>
+              <div className="text-[10px] text-[#2D3732]/50 uppercase tracking-widest font-space mb-1">Jam</div>
+              <div className="text-sm font-bold text-[#2D3732]">{formData.time} WIB</div>
             </div>
           </div>
 
-          {/* Section: Psikolog */}
-          <div className="flex items-center gap-4 pb-6 border-b border-[#E5E7EB]">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-gradient-to-br ${selectedPsychologist.avatarBg}`}>
+          <div className="flex items-center gap-4 pb-6 border-b border-[#D9E2DC]">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-gradient-to-br ${selectedPsychologist.avatarBg} shadow-sm`}>
               {selectedPsychologist.avatarChar}
             </div>
             <div>
-              <div className="text-[10px] text-[#64748B] uppercase tracking-widest font-space mb-0.5">Konselor Anda</div>
-              <div className="text-base font-bold text-[#1E293B] font-space">{selectedPsychologist.name}</div>
-              <div className="text-xs text-[#2D5D7B]">{selectedPsychologist.role}</div>
+              <div className="text-[10px] text-[#2D3732]/50 uppercase tracking-widest font-space mb-0.5">Konselor Anda</div>
+              <div className="text-base font-bold text-[#2D3732] font-space">{selectedPsychologist.name}</div>
+              <div className="text-xs text-[#4A7A96]">{selectedPsychologist.role}</div>
             </div>
           </div>
 
-          {/* Section: Pasien */}
-          <div className="grid grid-cols-2 gap-4 pb-6 border-b border-[#E5E7EB]">
+          <div className="grid grid-cols-2 gap-4 pb-6 border-b border-[#D9E2DC]">
             <div>
-              <div className="text-[10px] text-[#64748B] uppercase tracking-widest font-space mb-1">Nama Pasien</div>
-              <div className="text-sm text-[#1E293B]">{formData.info.name}</div>
+              <div className="text-[10px] text-[#2D3732]/50 uppercase tracking-widest font-space mb-1">Nama Pasien</div>
+              <div className="text-sm text-[#2D3732]">{formData.info.name}</div>
             </div>
             <div>
-              <div className="text-[10px] text-[#64748B] uppercase tracking-widest font-space mb-1">Kontak (WA)</div>
-              <div className="text-sm text-[#1E293B]">{formData.info.wa}</div>
+              <div className="text-[10px] text-[#2D3732]/50 uppercase tracking-widest font-space mb-1">Kontak (WA)</div>
+              <div className="text-sm text-[#2D3732]">{formData.info.wa}</div>
             </div>
           </div>
 
-          {/* Section: Biaya */}
           <div className="flex items-center justify-between pt-2">
-            <div className="text-sm text-[#64748B] font-space uppercase tracking-wider">Total Biaya</div>
-            <div className="text-2xl font-extrabold text-[#1E293B] font-space bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+            <div className="text-sm text-[#2D3732]/50 font-space uppercase tracking-wider">Total Biaya</div>
+            <div className="text-2xl font-extrabold text-[#2D3732] font-space">
               {selectedPsychologist.fee}
             </div>
           </div>
@@ -113,20 +109,20 @@ export default function Step6Summary({ formData, onNext, onPrev }: Step6Props) {
       )}
 
       <div className="flex justify-between">
-        <button 
+        <button
           onClick={onPrev}
           disabled={isSubmitting}
-          className="px-6 py-3 rounded-xl text-sm font-semibold text-[#64748B] bg-white border border-[#E5E7EB] hover:bg-[#F7F8FA] transition-all duration-300 disabled:opacity-50"
+          className="px-6 py-3 rounded-xl text-sm font-semibold text-[#709085] bg-white border border-[#D9E2DC] hover:bg-[#F7F9F6] transition-all duration-300 disabled:opacity-50"
         >
           Kembali
         </button>
-        <button 
+        <button
           onClick={handleConfirm}
           disabled={isSubmitting}
           className={`px-8 py-3 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2 ${
-            isSubmitting 
-              ? 'bg-indigo-600/50 text-white cursor-wait' 
-              : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:scale-105'
+            isSubmitting
+              ? 'bg-[#4A7A96]/50 text-white cursor-wait'
+              : 'bg-[#4A7A96] text-white hover:bg-[#3D6B82] shadow-sm'
           }`}
         >
           {isSubmitting ? (
