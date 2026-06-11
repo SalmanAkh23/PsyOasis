@@ -9,6 +9,8 @@ import {
   sendPasswordResetEmail,
   updateProfile,
 } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "",
@@ -19,19 +21,21 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? "",
 };
 
-let auth;
+let auth: any;
+let db: any;
+let storage: any;
 if (firebaseConfig.apiKey) {
   const app = initializeApp(firebaseConfig);
   auth = getAuth(app);
+  db = getFirestore(app);
+  storage = getStorage(app);
 } else {
-  // Dummy auth for development without real Firebase config
-  const dummy = {
+  const dummyAuth = {
     currentUser: null,
-    onAuthStateChanged: (cb) => {
+    onAuthStateChanged: (cb: any) => {
       cb(null);
       return () => {};
     },
-    // Stub functions return resolved promises
     createUserWithEmailAndPassword: async () => ({ user: { uid: "dev", email: "dev@example.com", displayName: "Dev User" } }),
     signInWithEmailAndPassword: async () => ({ user: { uid: "dev", email: "dev@example.com", displayName: "Dev User" } }),
     signOut: async () => {},
@@ -40,7 +44,20 @@ if (firebaseConfig.apiKey) {
     updateProfile: async () => {},
     GoogleAuthProvider: class {},
   } as any;
-  auth = dummy;
+  auth = dummyAuth;
+  db = null;
+  storage = null;
 }
 
-export { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, updateProfile };
+export {
+  auth,
+  db,
+  storage,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  GoogleAuthProvider,
+  signInWithPopup,
+  sendPasswordResetEmail,
+  updateProfile,
+};

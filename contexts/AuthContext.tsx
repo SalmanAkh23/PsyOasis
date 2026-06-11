@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { auth } from '../lib/firebase';
+import { auth, db } from '../lib/firebase';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -9,16 +9,17 @@ import {
   sendPasswordResetEmail,
   updateProfile,
 } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 interface AuthContextProps {
-  user: any; // Firebase User or null
+  user: any;
   loading: boolean;
   register: (email: string, password: string, displayName: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  updateUserProfile?: (data: { displayName?: string; photoURL?: string; phoneNumber?: string; bio?: string }) => Promise<void>;
+  updateUserProfile: (data: { displayName?: string; photoURL?: string; phoneNumber?: string; bio?: string }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -29,30 +30,53 @@ export const useAuth = () => {
   return context;
 };
 
+const COOKIE_NAME = 'psyoasis_token';
+
+const setAuthCookie = (token: string | null) => {
+  if (typeof window === 'undefined') return;
+  try {
+    const secure = window.location.protocol === 'https:';
+    const maxAge = 60 * 60 * 24 * 7;
+    if (token) {
+      const value = encodeURIComponent(token);
+      const securePart = secure ? ' Secure;' : '';
+      document.cookie = `${COOKIE_NAME}=${value}; Path=/; Max-Age=${maxAge};${securePart} SameSite=Lax;`;
+    } else {
+      document.cookie = `${COOKIE_NAME}=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+    }
+  } catch (err) {
+    console.error('Auth cookie error:', err);
+  }
+};
+
+const getFirestoreProfile = async (uid: string): Promise<Record<string, any>> => {
+  if (!db) return {};
+  try {
+    const ref = doc(db, 'users', uid);
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      return snap.data();
+    }
+  } catch (err) {
+    console.error('Firestore profile fetch error:', err);
+  }
+  return {};
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const COOKIE_NAME = 'psyoasis_token';
-  const setAuthCookie = (token: string | null) => {
-    if (typeof window === 'undefined') return;
-    try {
-      const secure = window.location.protocol === 'https:';
-      const maxAge = 60 * 60 * 24 * 7; // 7 days
-      if (token) {
-        const value = encodeURIComponent(token);
-        const securePart = secure ? ' Secure;' : '';
-        document.cookie = `${COOKIE_NAME}=${value}; Path=/; Max-Age=${maxAge};${securePart} SameSite=Lax;`;
-      } else {
-        document.cookie = `${COOKIE_NAME}=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
-      }
-    } catch (err) {
-      // ignore cookie errors in restricted environments
+  const refreshUserWithProfile = async (firebaseUser: any) => {
+    if (!firebaseUser) {
+      setUser(null);
+      return;
     }
+    const profile = await getFirestoreProfile(firebaseUser.uid);
+    setUser({ ...firebaseUser, ...profile });
   };
 
   useEffect(() => {
-    // Try to set persistence to local so sessions survive browser restarts
     (async () => {
       try {
         const { setPersistence, browserLocalPersistence } = await import('firebase/auth');
@@ -60,13 +84,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           await setPersistence(auth, browserLocalPersistence);
         }
       } catch (err) {
-        // If persistence cannot be set (e.g., dummy auth), continue silently
-        // console.warn('Failed to set auth persistence', err);
+        console.error('Persistence set error:', err);
       }
     })();
 
-    const unsubscribe = auth.onAuthStateChanged(async (u) => {
-      setUser(u);
+    const unsubscribe = auth.onAuthStateChanged(async (u: any) => {
+      try {
+        if (u) {
+          await refreshUserWithProfile(u);
+        } else {
+          setUser(null);
+        }
+      } catch (err) {
+        console.error('Auth state change error:', err);
+      }
       setLoading(false);
 
       try {
@@ -82,60 +113,62 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setAuthCookie(null);
         }
       } catch (e) {
-        // ignore token cookie errors in dev / dummy environments
+        console.error('Auth token sync error:', e);
       }
     });
 
     return () => unsubscribe();
   }, []);
 
+  const syncToken = async (u: any) => {
+    try {
+      if (u && (u as any).getIdToken) {
+        const token = await (u as any).getIdToken(true);
+        setAuthCookie(token);
+      } else if (u) {
+        setAuthCookie('dev');
+      } else {
+        setAuthCookie(null);
+      }
+    } catch (e) {
+      console.error('syncToken error:', e);
+    }
+  };
+
   const register = async (email: string, password: string, displayName: string) => {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     if (cred.user) {
       await updateProfile(cred.user, { displayName });
-      setUser(cred.user);
-      try {
-        if ((cred.user as any).getIdToken) {
-          const token = await (cred.user as any).getIdToken(true);
-          setAuthCookie(token);
-        } else {
-          setAuthCookie('dev');
-        }
-      } catch (e) {
-        // ignore
+      if (db) {
+        await setDoc(doc(db, 'users', cred.user.uid), { displayName, email, createdAt: new Date().toISOString() });
       }
+      await refreshUserWithProfile(cred.user);
+      await syncToken(cred.user);
     }
   };
 
   const login = async (email: string, password: string) => {
     const cred = await signInWithEmailAndPassword(auth, email, password);
-    setUser(cred.user);
-    try {
-      if ((cred.user as any).getIdToken) {
-        const token = await (cred.user as any).getIdToken(true);
-        setAuthCookie(token);
-      } else {
-        setAuthCookie('dev');
-      }
-    } catch (e) {
-      // ignore
-    }
+    await refreshUserWithProfile(cred.user);
+    await syncToken(cred.user);
   };
 
   const loginWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     const cred = await signInWithPopup(auth, provider);
-    setUser(cred.user);
-    try {
-      if ((cred.user as any).getIdToken) {
-        const token = await (cred.user as any).getIdToken(true);
-        setAuthCookie(token);
-      } else {
-        setAuthCookie('dev');
+    if (db && cred.user) {
+      const ref = doc(db, 'users', cred.user.uid);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) {
+        await setDoc(ref, {
+          displayName: cred.user.displayName,
+          email: cred.user.email,
+          createdAt: new Date().toISOString(),
+        });
       }
-    } catch (e) {
-      // ignore
     }
+    await refreshUserWithProfile(cred.user);
+    await syncToken(cred.user);
   };
 
   const logout = async () => {
@@ -144,7 +177,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setAuthCookie(null);
     } catch (e) {
-      // ignore
+      console.error('Logout cookie clear error:', e);
     }
   };
 
@@ -153,27 +186,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateUserProfile = async (data: { displayName?: string; photoURL?: string; phoneNumber?: string; bio?: string }) => {
-    try {
-      const current = (auth as any).currentUser;
-      if (current && (typeof (current) !== 'undefined') && (updateProfile as any)) {
-        // Only update displayName and photoURL using firebase.updateProfile
-        const toUpdate: any = {};
-        if (data.displayName) toUpdate.displayName = data.displayName;
-        if (data.photoURL) toUpdate.photoURL = data.photoURL;
-        if (Object.keys(toUpdate).length > 0) {
-          await updateProfile(current, toUpdate);
-        }
-        // locally augment other fields (phone, bio) so UI reflects changes
-        const newUser = { ...current, ...toUpdate };
-        if (data.phoneNumber) (newUser as any).phoneNumber = data.phoneNumber;
-        if (data.bio) (newUser as any).bio = data.bio;
-        setUser(newUser);
-      } else {
-        // dev fallback: merge into local user
-        setUser((prev: any) => ({ ...(prev || {}), ...data }));
+    const current = auth.currentUser;
+    if (!current) return;
+    // Update Firebase Auth fields (skip photoURL — data URL terlalu panjang)
+    const toUpdate: any = {};
+    if (data.displayName) toUpdate.displayName = data.displayName;
+    if (Object.keys(toUpdate).length > 0) {
+      try {
+        await updateProfile(current, toUpdate);
+      } catch (err) {
+        console.error('Auth profile update error:', err);
       }
+    }
+
+    // Save to Firestore
+    if (db) {
+      try {
+        const ref = doc(db, 'users', current.uid);
+        const firestoreData: Record<string, any> = {};
+        if (data.displayName) firestoreData.displayName = data.displayName;
+        if (data.phoneNumber) firestoreData.phoneNumber = data.phoneNumber;
+        if (data.bio) firestoreData.bio = data.bio;
+        if (data.photoURL) firestoreData.photoURL = data.photoURL;
+        if (Object.keys(firestoreData).length > 0) {
+          await setDoc(ref, firestoreData, { merge: true });
+        }
+      } catch (err) {
+        console.error('Firestore profile save error:', err);
+      }
+    }
+
+    // Refresh local state
+    try {
+      await refreshUserWithProfile(current);
     } catch (err) {
-      throw err;
+      setUser((prev: any) => ({ ...(prev || {}), ...data }));
     }
   };
 

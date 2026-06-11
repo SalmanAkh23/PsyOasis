@@ -20,7 +20,7 @@ export function middleware(req: NextRequest) {
   }
 
   // Protect these prefixes server-side
-  const protectedPrefixes = ['/dashboard', '/konsultasi', '/profile']
+  const protectedPrefixes = ['/dashboard', '/konsultasi', '/profile', '/booking']
   if (protectedPrefixes.some((p) => pathname.startsWith(p))) {
     if (!isAuthenticated) {
       const loginUrl = req.nextUrl.clone()
@@ -36,5 +36,5 @@ export function middleware(req: NextRequest) {
 
 // Only run middleware for intended routes
 export const config = {
-  matcher: ['/', '/dashboard/:path*', '/konsultasi/:path*', '/profile/:path*'],
+  matcher: ['/', '/dashboard/:path*', '/konsultasi/:path*', '/profile/:path*', '/booking/:path*'],
 }

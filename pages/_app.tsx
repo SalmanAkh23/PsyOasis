@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import Router from 'next/router'
 import { AuthProvider, useAuth } from '../contexts/AuthContext'
 import { useRouter } from 'next/router'
+import { ToastProvider } from '../components/ui/Toast'
 
 function FullScreenLoader() {
   return (
@@ -93,7 +94,9 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <AuthProvider>
       <AuthGate>
-        <Component {...pageProps} />
+        <ToastProvider>
+          <Component {...pageProps} />
+        </ToastProvider>
       </AuthGate>
     </AuthProvider>
   );

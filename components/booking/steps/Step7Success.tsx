@@ -18,14 +18,14 @@ export default function Step7Success() {
         </div>
       </div>
 
-      <h3 className="text-3xl font-extrabold font-space text-white mb-2 text-center">Booking Berhasil!</h3>
-      <p className="text-slate-400 mb-8 text-center max-w-md text-sm">
+      <h3 className="text-3xl font-extrabold font-space text-[#1E293B] mb-2 text-center">Booking Berhasil!</h3>
+      <p className="text-[#64748B] mb-8 text-center max-w-md text-sm">
         Jadwal konsultasi Anda telah berhasil dibuat. Silakan cek email Anda untuk instruksi selanjutnya.
       </p>
 
-      <div className="glass-panel w-full max-w-sm p-6 rounded-3xl border border-white/10 mb-8 flex flex-col items-center gap-4">
-        <div className="text-[10px] text-slate-500 uppercase tracking-widest font-space">Nomor Booking</div>
-        <div className="text-2xl font-bold font-space text-indigo-300 tracking-widest bg-white/5 px-6 py-2 rounded-xl border border-white/5">
+      <div className="w-full max-w-sm p-6 rounded-3xl border border-[#E5E7EB] mb-8 flex flex-col items-center gap-4 bg-white shadow-sm">
+        <div className="text-[10px] text-[#64748B] uppercase tracking-widest font-space">Nomor Booking</div>
+        <div className="text-2xl font-bold font-space text-[#2D5D7B] tracking-widest bg-[#F7F8FA] px-6 py-2 rounded-xl border border-[#E5E7EB]">
           {bookingId}
         </div>
         <div className="flex items-center gap-2 mt-2">
@@ -36,7 +36,7 @@ export default function Step7Success() {
 
       <button 
         onClick={() => router.push('/')}
-        className="px-8 py-3 rounded-xl text-sm font-bold bg-white/10 hover:bg-white/20 text-white transition-all duration-300 border border-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+        className="px-8 py-3 rounded-xl text-sm font-bold bg-[#2D5D7B] hover:bg-[#244A63] text-white transition-all duration-300 border border-transparent shadow-sm"
       >
         Kembali ke Beranda
       </button>

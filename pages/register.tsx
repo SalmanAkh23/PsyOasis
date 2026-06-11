@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
@@ -11,6 +11,12 @@ export default function Register() {
   const router = useRouter();
   const { register, user, loading } = useAuth();
 
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace('/dashboard');
+    }
+  }, [loading, user, router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -22,13 +28,9 @@ export default function Register() {
     }
   };
 
-  // If already logged in, redirect to dashboard
-  if (!loading && user) {
-    if (typeof window !== 'undefined') {
-      router.replace('/dashboard');
-    }
-    return null;
-  }
+  if (loading) return null;
+
+  if (user) return null;
 
   return (
     <>

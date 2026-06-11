@@ -1,4 +1,3 @@
-export * from './mockData';
 export const mockPsychologists = [
   {
     id: 'p1',
