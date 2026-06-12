@@ -19,7 +19,7 @@ interface AuthContextProps {
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  updateUserProfile: (data: { displayName?: string; photoURL?: string; phoneNumber?: string; bio?: string }) => Promise<void>;
+  updateUserProfile: (data: { displayName?: string; photoURL?: string; phoneNumber?: string; bio?: string; birthDate?: string; gender?: string; emergencyContactName?: string; emergencyContactRelation?: string; settings?: Record<string, any> }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -185,7 +185,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await sendPasswordResetEmail(auth, email);
   };
 
-  const updateUserProfile = async (data: { displayName?: string; photoURL?: string; phoneNumber?: string; bio?: string }) => {
+  const updateUserProfile = async (data: { displayName?: string; photoURL?: string; phoneNumber?: string; bio?: string; birthDate?: string; gender?: string; emergencyContactName?: string; emergencyContactRelation?: string; settings?: Record<string, any> }) => {
     const current = auth.currentUser;
     if (!current) return;
     // Update Firebase Auth fields (skip photoURL — data URL terlalu panjang)
@@ -204,10 +204,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         const ref = doc(db, 'users', current.uid);
         const firestoreData: Record<string, any> = {};
-        if (data.displayName) firestoreData.displayName = data.displayName;
-        if (data.phoneNumber) firestoreData.phoneNumber = data.phoneNumber;
-        if (data.bio) firestoreData.bio = data.bio;
-        if (data.photoURL) firestoreData.photoURL = data.photoURL;
+        if (data.displayName !== undefined) firestoreData.displayName = data.displayName;
+        if (data.phoneNumber !== undefined) firestoreData.phoneNumber = data.phoneNumber;
+        if (data.bio !== undefined) firestoreData.bio = data.bio;
+        if (data.photoURL !== undefined) firestoreData.photoURL = data.photoURL;
+        if (data.birthDate !== undefined) firestoreData.birthDate = data.birthDate;
+        if (data.gender !== undefined) firestoreData.gender = data.gender;
+        if (data.emergencyContactName !== undefined) firestoreData.emergencyContactName = data.emergencyContactName;
+        if (data.emergencyContactRelation !== undefined) firestoreData.emergencyContactRelation = data.emergencyContactRelation;
+        if (data.settings !== undefined) firestoreData.settings = data.settings;
         if (Object.keys(firestoreData).length > 0) {
           await setDoc(ref, firestoreData, { merge: true });
         }
