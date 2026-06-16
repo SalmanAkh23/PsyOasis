@@ -15,10 +15,6 @@ export default function PortalLayout({ children, title, doctorName }: Props) {
       <Head>
         <title>{title ? `${title} – PsyOasis Clinician Portal` : 'PsyOasis Clinician Portal'}</title>
         <meta name="description" content="PsyOasis Clinician Portal - Doctor Dashboard" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-          rel="stylesheet"
-        />
       </Head>
       <div className="bg-surface text-on-surface font-body-md antialiased h-screen overflow-hidden flex">
         <PortalSidebar />

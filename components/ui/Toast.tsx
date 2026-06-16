@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react'
+import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react'
 import { CheckCircleIcon, XCircleIcon, XMarkIcon } from '@heroicons/react/24/outline'
 
 interface Toast {
@@ -19,16 +19,34 @@ let _id = 0
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
+  const timersRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map())
+
+  useEffect(() => {
+    const timers = timersRef.current
+    return () => {
+      timers.forEach(clearTimeout)
+      timers.clear()
+    }
+  }, [])
 
   const showToast = useCallback((type: 'success' | 'error', message: string) => {
     const id = ++_id
     setToasts(prev => [...prev, { id, type, message }])
-    setTimeout(() => {
+    const timer = setTimeout(() => {
+      timersRef.current.delete(id)
       setToasts(prev => prev.filter(t => t.id !== id))
     }, 3500)
+    timersRef.current.set(id, timer)
   }, [])
 
-  const remove = (id: number) => setToasts(prev => prev.filter(t => t.id !== id))
+  const remove = (id: number) => {
+    const timer = timersRef.current.get(id)
+    if (timer) {
+      clearTimeout(timer)
+      timersRef.current.delete(id)
+    }
+    setToasts(prev => prev.filter(t => t.id !== id))
+  }
 
   return (
     <Ctx.Provider value={{ showToast }}>

@@ -13,7 +13,7 @@ export default function PatientSession() {
 
   if (loading || !user || !id) return null;
 
-  const roomName = `PsyOasis-${(id as string).slice(0, 8)}`;
+  const roomName = `PsyOasis-${(id as string).replace(/-/g, '').slice(0, 12)}`;
 
   return (
     <>
@@ -29,7 +29,6 @@ export default function PatientSession() {
               </button>
               <div>
                 <h1 className="text-xl font-bold text-[#1a1c1e] font-['Poppins']">Video Session</h1>
-                <p className="text-xs text-[#434652] mt-0.5 font-['Inter']">Room: {roomName}</p>
               </div>
             </div>
             <button

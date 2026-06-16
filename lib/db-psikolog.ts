@@ -36,7 +36,7 @@ export async function getUpcomingAppointments(psychologistId: string) {
     .select('*')
     .eq('psychologist_id', psychologistId)
     .gte('date', today)
-    .in('status', ['dikonfirmasi', 'selesai'])
+    .in('status', ['menunggu', 'dikonfirmasi', 'selesai'])
     .order('date', { ascending: true })
     .order('time', { ascending: true });
   return toCamelCase(data || []);
@@ -339,8 +339,21 @@ export async function createBookingByDoctor(data: {
   complaint?: string
   fee: string
 }) {
+  let patientUserId: string | undefined;
+  if (data.patientEmail) {
+    const { data: userRows } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', data.patientEmail)
+      .limit(1)
+      .maybeSingle();
+    if (userRows) patientUserId = (userRows as any).id;
+  }
+  if (!patientUserId) {
+    patientUserId = crypto.randomUUID();
+  }
   const { data: inserted, error } = await supabase.from('bookings').insert({
-    user_id: (await supabase.auth.getUser()).data.user?.id,
+    user_id: patientUserId,
     user_name: data.patientName,
     user_email: data.patientEmail || '',
     user_wa: data.patientWa || '',

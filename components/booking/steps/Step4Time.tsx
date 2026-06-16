@@ -10,12 +10,15 @@ interface Step4Props {
   onPrev: () => void;
 }
 
-function generateTimeSlots(start: string, end: string): string[] {
+function generateTimeSlots(start: string, end: string, durationMinutes = 60): string[] {
   const slots: string[] = [];
   const [sh, sm] = start.split(':').map(Number);
   const [eh, em] = end.split(':').map(Number);
   let h = sh, m = sm;
-  while (h < eh || (h === eh && m < em)) {
+  const endTotal = eh * 60 + em;
+  while (true) {
+    const slotStart = h * 60 + m;
+    if (slotStart + durationMinutes > endTotal) break;
     slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
     m += 60;
     if (m >= 60) { h += 1; m -= 60; }

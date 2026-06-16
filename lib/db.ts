@@ -1,13 +1,14 @@
 import { supabase, toCamelCase } from './supabase';
 
 export async function createNotification(userId: string, title: string, message: string) {
-  await supabase.from('notifications').insert({
+  const { error } = await supabase.from('notifications').insert({
     user_id: userId,
     title,
     message,
     read: false,
     created_at: new Date().toISOString(),
   });
+  if (error) console.error('createNotification error:', error);
 }
 
 export async function cancelBooking(bookingId: string) {
@@ -43,8 +44,8 @@ export async function createBooking(data: {
     mode: data.mode,
     complaint: data.complaint,
     fee: data.fee,
-    status: 'dikonfirmasi',
-    payment_status: 'lunas',
+    status: 'menunggu',
+    payment_status: 'pending',
     created_at: new Date().toISOString(),
   }).select();
   if (error) throw error;
@@ -111,7 +112,7 @@ export async function getTodayMood(userId: string) {
     .select('mood')
     .eq('user_id', userId)
     .eq('date', today)
-    .single();
+    .maybeSingle();
   return (data as any)?.mood ?? null;
 }
 
@@ -242,18 +243,13 @@ export async function getPaymentHistory(userId: string) {
 }
 
 export async function getLandingStats() {
-  const { count: psychologistCount } = await supabase
-    .from('psychologists')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'active');
-
-  const { count: sessionCount } = await supabase
-    .from('bookings')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'selesai');
-
+  const { data, error } = await supabase.rpc('get_landing_stats');
+  if (error) {
+    console.error('getLandingStats error:', error);
+    return { psychologistCount: 0, sessionCount: 0 };
+  }
   return {
-    psychologistCount: psychologistCount || 0,
-    sessionCount: sessionCount || 0,
+    psychologistCount: (data as any)?.[0]?.psychologist_count || 0,
+    sessionCount: (data as any)?.[0]?.session_count || 0,
   };
 }

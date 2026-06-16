@@ -30,10 +30,16 @@ export default function Login() {
       await login(email, password);
       router.push('/dashboard');
     } catch (err: any) {
-      const msg = err.message || 'Login failed';
+      const msg = err.message || '';
       if (msg.toLowerCase().includes('email not confirmed') || msg.toLowerCase().includes('email not verified')) {
         setUnverifiedEmail(email);
         setError('Email belum diverifikasi. Silakan cek kotak masuk Anda untuk link verifikasi.');
+      } else if (msg.toLowerCase().includes('invalid login credentials')) {
+        setError('Email atau kata sandi salah.');
+      } else if (msg.toLowerCase().includes('rate limit')) {
+        setError('Terlalu banyak percobaan. Silakan coba lagi beberapa saat.');
+      } else if (msg.toLowerCase().includes('user not found')) {
+        setError('Akun tidak ditemukan. Periksa email Anda.');
       } else {
         setError(msg);
       }
@@ -57,7 +63,7 @@ export default function Login() {
       await loginWithGoogle();
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Google login failed');
+      setError(err?.message?.includes('popup') ? 'Popup login ditutup. Silakan coba lagi.' : (err.message || 'Google login gagal'));
     }
   };
 

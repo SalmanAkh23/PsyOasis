@@ -12,8 +12,8 @@ import {
 } from '@heroicons/react/24/outline'
 
 const statusStyles: Record<string, { label: string, classes: string }> = {
+  menunggu: { label: 'Menunggu', classes: 'bg-amber-50 text-amber-600' },
   dikonfirmasi: { label: 'Dikonfirmasi', classes: 'bg-emerald-50 text-emerald-600' },
-  pending: { label: 'Menunggu', classes: 'bg-amber-50 text-amber-600' },
   selesai: { label: 'Selesai', classes: 'bg-slate-50 text-slate-500' },
 }
 
@@ -98,7 +98,7 @@ export default function KonsultasiPage() {
         ) : (
           <div className="space-y-3">
             {filtered.map((b: any) => {
-              const status = statusStyles[b.status] || statusStyles.pending;
+              const status = statusStyles[b.status] || statusStyles.menunggu;
               return (
                 <div
                   key={b.id}
@@ -138,7 +138,7 @@ export default function KonsultasiPage() {
                           Mulai
                         </button>
                       )}
-                      {(b.status === 'pending') && (
+                      {(b.status === 'menunggu') && (
                         <button
                           onClick={(e) => { e.stopPropagation(); handleCancel(b.id); }}
                           className="px-3 py-1 rounded-full text-[10px] font-semibold font-['Inter'] bg-red-50 text-red-600 hover:bg-red-100 transition-colors"

@@ -34,14 +34,9 @@ export default function Home() {
         <meta property="og:title" content="PsyOasis — Ruang Aman untuk Kesehatan Mental" />
         <meta property="og:description" content="Setiap perjalanan kesehatan mental dimulai dari langkah kecil. Terhubung dengan psikolog profesional." />
         <meta name="theme-color" content="#f9f9fc" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       </Head>
 
       <style jsx global>{`
-        @import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");
-
         body {
           background-color: #f9f9fc;
           color: #1a1c1e;

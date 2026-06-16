@@ -12,18 +12,15 @@ export default function PortalSession() {
 
   if (loading || !user || !id) return null;
 
-  const roomName = `PsyOasis-${(id as string).slice(0, 8)}`;
+  const roomName = `PsyOasis-${(id as string).replace(/-/g, '').slice(0, 12)}`;
 
   return (
     <PortalLayout title="Video Session" doctorName={user?.displayName || 'Dr. Smith'}>
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="font-headline-lg text-headline-lg text-primary">Video Session</h2>
-            <p className="font-body-md text-body-md text-on-surface-variant mt-1">
-              Room: {roomName}
-            </p>
-          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-headline-lg text-headline-lg text-primary">Video Session</h2>
+            </div>
           <div className="flex gap-3">
             <button
               onClick={() => router.push('/dashboard/portal/jadwal')}

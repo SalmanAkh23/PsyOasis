@@ -137,7 +137,7 @@ export default function PortalJadwal() {
             <span className="material-symbols-outlined text-[18px]">add</span>
             New Appointment
           </button>
-          {['all', 'dikonfirmasi', 'selesai'].map((f) => (
+          {['all', 'menunggu', 'dikonfirmasi', 'selesai'].map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -187,6 +187,7 @@ export default function PortalJadwal() {
                     const initial = (appt.userName || 'U').charAt(0).toUpperCase();
                     const mode = appt.mode === 'offline' ? 'In-Person' : 'Online';
                     const modeColor = appt.mode === 'offline' ? 'bg-tertiary' : 'bg-secondary';
+                    const isPending = appt.status === 'menunggu';
                     const isConfirmed = appt.status === 'dikonfirmasi';
                     const isDone = appt.status === 'selesai';
                     return (
@@ -209,9 +210,10 @@ export default function PortalJadwal() {
                             <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                               isDone ? 'bg-secondary-container text-on-secondary-container' :
                               isConfirmed ? 'bg-primary-fixed text-primary-fixed-variant' :
+                              isPending ? 'bg-amber-100 text-amber-800' :
                               'bg-surface-variant text-on-surface-variant'
                             }`}>
-                              {isDone ? 'Completed' : isConfirmed ? 'Confirmed' : appt.status}
+                              {isDone ? 'Completed' : isConfirmed ? 'Confirmed' : isPending ? 'Pending' : appt.status}
                             </span>
                           </div>
                           <p className="font-caption text-caption text-on-surface-variant mt-1">
@@ -219,6 +221,24 @@ export default function PortalJadwal() {
                           </p>
                         </div>
                         <div className="flex gap-2">
+                          {isPending && (
+                            <button
+                              onClick={() => handleStatusUpdate(appt.id, 'dikonfirmasi')}
+                              disabled={updating === appt.id}
+                              className="px-4 py-2 bg-primary text-on-primary rounded-lg font-label-sm text-label-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
+                            >
+                              {updating === appt.id ? '...' : 'Confirm'}
+                            </button>
+                          )}
+                          {isPending && (
+                            <button
+                              onClick={() => handleStatusUpdate(appt.id, 'dibatalkan')}
+                              disabled={updating === appt.id}
+                              className="px-4 py-2 border border-error text-error rounded-lg font-label-sm text-label-sm hover:bg-error/5 transition-colors disabled:opacity-50"
+                            >
+                              Reject
+                            </button>
+                          )}
                           {isConfirmed && (
                             <button
                               onClick={() => router.push(`/dashboard/portal/sesi/${appt.id}`)}

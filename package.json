@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@daily-co/daily-js": "^0.91.0",
     "@heroicons/react": "^2.2.0",
     "@supabase/supabase-js": "^2.108.1",
     "framer-motion": "^12.40.0",

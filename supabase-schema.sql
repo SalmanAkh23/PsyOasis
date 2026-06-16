@@ -95,12 +95,12 @@ CREATE TABLE IF NOT EXISTS bookings (
   complaint TEXT,
   notes TEXT,
   fee TEXT,
-  status TEXT DEFAULT 'dikonfirmasi',
+  status TEXT DEFAULT 'menunggu',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_status TEXT DEFAULT 'lunas';
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_status TEXT DEFAULT 'pending';
 
 -- Notifications
 CREATE TABLE IF NOT EXISTS notifications (
@@ -350,6 +350,18 @@ CREATE POLICY "psychologist_photos_delete" ON storage.objects
     AND auth.role() = 'authenticated'
   );
 
+-- Notifications: patient can insert own
+CREATE POLICY "notifications_insert_own" ON notifications
+  FOR INSERT WITH CHECK (user_id = auth.uid());
+
+-- Articles: admin can update
+CREATE POLICY "articles_update_admin" ON articles
+  FOR UPDATE USING (public.is_admin());
+
+-- Users: psychologist can read patient profiles (for getAllPatients, getPatientDetail, getChatPatients)
+CREATE POLICY "users_select_psychologist" ON users
+  FOR SELECT USING (EXISTS (SELECT 1 FROM public.psychologists WHERE user_id = auth.uid()));
+
 -- RPC function for patients to check booked times (bypasses RLS safely)
 CREATE OR REPLACE FUNCTION get_booked_times(p_psychologist_id UUID, p_date TEXT)
 RETURNS TABLE(booked_time TEXT) AS $$
@@ -358,4 +370,12 @@ RETURNS TABLE(booked_time TEXT) AS $$
     AND date = p_date
     AND status != 'dibatalkan'
   ORDER BY time;
+  $$ LANGUAGE sql SECURITY DEFINER;
+
+-- RPC function for landing page stats (bypasses RLS for public counts)
+CREATE OR REPLACE FUNCTION get_landing_stats()
+RETURNS TABLE(psychologist_count BIGINT, session_count BIGINT) AS $$
+  SELECT
+    (SELECT COUNT(*) FROM psychologists WHERE status = 'active'),
+    (SELECT COUNT(*) FROM bookings WHERE status = 'selesai');
 $$ LANGUAGE sql SECURITY DEFINER;
