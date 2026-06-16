@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getPsychologistByUserId, updatePsychologistProfile, getPsychologistProfile } from '../../../lib/db-psikolog';
 import { supabase } from '../../../lib/supabase';
+import { services } from '../../../lib/services';
 import PortalLayout from '../../../components/dashboard/portal/Layout';
 import { useToast } from '../../../components/ui/Toast';
 
@@ -13,18 +14,6 @@ const gelarOptions = [
   { value: 'M.Psi., Psikolog', label: 'Magister Profesi Psikologi (M.Psi., Psikolog)', desc: 'Jenjang S2 — memiliki izin praktik klinis maupun non-klinis' },
   { value: 'Dr.', label: 'Doktor (Dr.)', desc: 'Gelar akademik S3 — fokus pada penelitian dan akademisi' },
   { value: 'Ph.D.', label: 'Doktor (Ph.D.)', desc: 'Gelar akademik S3 — fokus pada penelitian dan akademisi' },
-];
-
-const serviceOptions = [
-  { id: 's1', label: 'Konseling Individu' },
-  { id: 's2', label: 'Konseling Pernikahan' },
-  { id: 's3', label: 'Konseling Keluarga' },
-  { id: 's4', label: 'Konseling Remaja' },
-  { id: 's5', label: 'Konseling Anak' },
-  { id: 's6', label: 'Anxiety Therapy' },
-  { id: 's7', label: 'Depression Therapy' },
-  { id: 's8', label: 'Burnout Recovery' },
-  { id: 's9', label: 'Career Counseling' },
 ];
 
 export default function PortalProfil() {
@@ -318,7 +307,7 @@ export default function PortalProfil() {
               Pilih layanan konseling yang Anda sediakan.
             </p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {serviceOptions.map((svc) => {
+              {services.map((svc) => {
                 const active = selectedServices.includes(svc.id);
                 return (
                   <button

@@ -25,8 +25,8 @@ export default function Step3Date({ psychologistId, selectedDate, selectedDispla
     if (!psychologistId) return;
     setLoading(true);
     Promise.all([
-      getWeeklySchedule(psychologistId),
-      getTimeOff(psychologistId),
+      getWeeklySchedule(psychologistId).catch(() => []),
+      getTimeOff(psychologistId).catch(() => []),
     ]).then(([schedule, timeOff]) => {
       const days = new Set<number>();
       for (const s of schedule) {
@@ -63,7 +63,7 @@ export default function Step3Date({ psychologistId, selectedDate, selectedDispla
 
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(viewYear, viewMonth, day);
-      const iso = date.toISOString().split('T')[0];
+      const iso = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       const isPast = date <= today;
       const isSel = selectedDate === iso;
       const dayOfWeek = date.getDay();

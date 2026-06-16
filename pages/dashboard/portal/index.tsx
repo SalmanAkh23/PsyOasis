@@ -135,7 +135,10 @@ export default function PortalOverview() {
           >
             Update Schedule
           </button>
-          <button className="bg-primary text-on-primary px-6 py-3 rounded-lg font-label-md text-label-md hover:bg-primary/90 transition-colors active:scale-95 flex items-center gap-2">
+          <button
+            onClick={() => router.push('/dashboard/portal/jadwal')}
+            className="bg-primary text-on-primary px-6 py-3 rounded-lg font-label-md text-label-md hover:bg-primary/90 transition-colors active:scale-95 flex items-center gap-2"
+          >
             <span className="material-symbols-outlined">video_camera_front</span>
             Start Session
           </button>

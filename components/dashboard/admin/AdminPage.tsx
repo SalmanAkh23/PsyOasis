@@ -12,7 +12,9 @@ import {
   toggleUserStatus,
   deletePsychologist,
   createArticle,
+  updateArticle,
   deleteArticle,
+  getMonthlyBookings,
 } from '../../../lib/db-admin';
 import { getArticles } from '../../../lib/db';
 import AdminLayout from './Layout';
@@ -76,6 +78,8 @@ export default function AdminPage() {
   const [articleForm, setArticleForm] = useState({ title: '', content: '', excerpt: '', category: 'article', authorName: '' });
   const [articleSaving, setArticleSaving] = useState(false);
   const [artikelItems, setArtikelItems] = useState<any[]>([]);
+  const [monthlyCounts, setMonthlyCounts] = useState([0, 0, 0, 0, 0, 0]);
+  const [monthlyRevenue, setMonthlyRevenue] = useState([0, 0, 0, 0, 0, 0]);
 
   useEffect(() => {
     if (!loading && !user) router.replace('/admin/login');
@@ -96,13 +100,14 @@ export default function AdminPage() {
   const loadData = useCallback(async () => {
     setDataLoading(true);
     try {
-      const [s, u, p, a, act, arts] = await Promise.all([
+      const [s, u, p, a, act, arts, monthly] = await Promise.all([
         getSystemStats(),
         getAllUsers(),
         getAllPsychologists(),
         getAllAppointments(),
         getRecentActivity(),
         getArticles().catch(() => []),
+        getMonthlyBookings(),
       ]);
       setStats(s);
       setUsers(u as any[]);
@@ -110,6 +115,8 @@ export default function AdminPage() {
       setAppointments(a as any[]);
       setActivities(act as any[]);
       setArticles(arts as any[]);
+      setMonthlyCounts(monthly.monthlyCounts);
+      setMonthlyRevenue(monthly.monthlyRevenue);
     } catch (err) {
       console.error('Admin data error:', err);
     }
@@ -224,11 +231,19 @@ export default function AdminPage() {
   };
 
   function renderDashboard() {
+    const totalMonthly = monthlyCounts.reduce((a: number, b: number) => a + b, 0);
+    const sessionGrowth = totalMonthly > 0 && monthlyCounts.slice(0, 3).reduce((a: number, b: number) => a + b, 0) > 0
+      ? `${((monthlyCounts.slice(3).reduce((a: number, b: number) => a + b, 0) / monthlyCounts.slice(0, 3).reduce((a: number, b: number) => a + b, 0) - 1) * 100).toFixed(0)}%`
+      : null;
+    const revenueGrowth = monthlyRevenue.slice(3).reduce((a: number, b: number) => a + b, 0) > 0 && monthlyRevenue.slice(0, 3).reduce((a: number, b: number) => a + b, 0) > 0
+      ? `${((monthlyRevenue.slice(3).reduce((a: number, b: number) => a + b, 0) / monthlyRevenue.slice(0, 3).reduce((a: number, b: number) => a + b, 0) - 1) * 100).toFixed(0)}%`
+      : null;
+
     const statCards = [
-      { icon: 'group', label: 'Total Users', value: dataLoading ? '-' : (stats.totalUsers || 0).toLocaleString(), growth: '+12%', color: 'border-l-primary', iconBg: 'bg-primary-fixed/30 text-primary' },
-      { icon: 'psychology', label: 'Active Psychologists', value: dataLoading ? '-' : (stats.activePsikolog || 0), growth: '+5%', color: 'border-l-secondary', iconBg: 'bg-secondary-fixed/30 text-secondary' },
-      { icon: 'forum', label: 'Ongoing Sessions', value: dataLoading ? '-' : (stats.ongoingSessions || 0), growth: '+8%', color: 'border-l-tertiary', iconBg: 'bg-tertiary-fixed/30 text-tertiary' },
-      { icon: 'payments', label: 'Total Revenue (This Month)', value: dataLoading ? '-' : `Rp${(stats.totalRevenue || 0).toLocaleString('id-ID')}`, growth: '+18%', color: 'border-l-primary-container', iconBg: 'bg-primary-container/10 text-primary-container' },
+      { icon: 'group', label: 'Total Users', value: dataLoading ? '-' : (stats.totalUsers || 0).toLocaleString(), growth: null, color: 'border-l-primary', iconBg: 'bg-primary-fixed/30 text-primary' },
+      { icon: 'psychology', label: 'Active Psychologists', value: dataLoading ? '-' : (stats.activePsikolog || 0), growth: null, color: 'border-l-secondary', iconBg: 'bg-secondary-fixed/30 text-secondary' },
+      { icon: 'forum', label: 'Ongoing Sessions (This Month)', value: dataLoading ? '-' : (stats.ongoingSessions || 0), growth: sessionGrowth ? `+${sessionGrowth}` : null, color: 'border-l-tertiary', iconBg: 'bg-tertiary-fixed/30 text-tertiary' },
+      { icon: 'payments', label: 'Total Revenue (This Month)', value: dataLoading ? '-' : `Rp${(stats.totalRevenue || 0).toLocaleString('id-ID')}`, growth: revenueGrowth ? `+${revenueGrowth}` : null, color: 'border-l-primary-container', iconBg: 'bg-primary-container/10 text-primary-container' },
     ];
 
     return (
@@ -287,19 +302,23 @@ export default function AdminPage() {
                 {dataLoading ? (
                   <div className="w-full flex items-center justify-center text-on-surface-variant h-full">Loading...</div>
                 ) : (
-                  [30, 60, 40, 80, 90, 70].map((h, i) => (
-                    <div
-                      key={i}
-                      className={`w-full rounded-t-sm relative group cursor-pointer transition-all duration-200 hover:opacity-80 ${
-                        i === 4 ? 'bg-primary' : 'bg-primary-fixed/40 hover:bg-primary-fixed'
-                      }`}
-                      style={{ height: `${h}%` }}
-                    >
-                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 font-caption text-caption bg-inverse-surface text-inverse-on-surface px-2 py-1 rounded transition-opacity whitespace-nowrap">
-                        {[1200, 1800, 900, 2400, 2700, 2100][i]}
+                  monthlyCounts.map((h: number, i: number) => {
+                    const maxVal = Math.max(...monthlyCounts, 1);
+                    const pct = (h / maxVal) * 100;
+                    return (
+                      <div
+                        key={i}
+                        className={`w-full rounded-t-sm relative group cursor-pointer transition-all duration-200 hover:opacity-80 ${
+                          i === monthlyCounts.length - 1 ? 'bg-primary' : 'bg-primary-fixed/40 hover:bg-primary-fixed'
+                        }`}
+                        style={{ height: `${Math.max(pct, 1)}%` }}
+                      >
+                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 font-caption text-caption bg-inverse-surface text-inverse-on-surface px-2 py-1 rounded transition-opacity whitespace-nowrap">
+                          {h}
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>

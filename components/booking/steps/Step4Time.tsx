@@ -29,21 +29,26 @@ export default function Step4Time({ psychologistId, selectedDate, selectedTime, 
 
   useEffect(() => {
     if (!psychologistId || !selectedDate) return;
+    console.log('[Step4Time] psychologistId:', psychologistId, 'selectedDate:', selectedDate);
     setLoading(true);
 
     Promise.all([
-      getWeeklySchedule(psychologistId),
-      getBookedTimes(psychologistId, selectedDate),
+      getWeeklySchedule(psychologistId).catch((e) => { console.error('[Step4Time] getWeeklySchedule error:', e); return []; }),
+      getBookedTimes(psychologistId, selectedDate).catch((e) => { console.error('[Step4Time] getBookedTimes error:', e); return []; }),
     ]).then(([schedule, booked]) => {
       const dayOfWeek = new Date(selectedDate + 'T00:00:00').getDay();
+      console.log('[Step4Time] schedule:', JSON.stringify(schedule), 'dayOfWeek:', dayOfWeek, 'booked:', booked);
       const daySchedule = schedule.find((s: any) => s.dayOfWeek === dayOfWeek && s.isAvailable);
+      console.log('[Step4Time] daySchedule found:', !!daySchedule, daySchedule);
 
       if (daySchedule) {
         const allSlots = generateTimeSlots(daySchedule.startTime, daySchedule.endTime);
         const bookedSet = new Set(booked);
         const free = allSlots.filter((t) => !bookedSet.has(t));
+        console.log('[Step4Time] allSlots:', allSlots, 'free:', free);
         setAvailableTimes(free);
       } else {
+        console.log('[Step4Time] NO daySchedule found — schedule empty or day not available');
         setAvailableTimes([]);
       }
     }).finally(() => setLoading(false));

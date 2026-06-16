@@ -8,7 +8,9 @@ interface Step7SuccessProps {
 export default function Step7Success({ bookingId }: Step7SuccessProps) {
   const router = useRouter();
 
-  const displayId = bookingId || `MC-${new Date().getFullYear()}-${Math.floor(Math.random() * 100000).toString().padStart(6, '0')}`;
+  const displayId = bookingId
+    ? `MC-${new Date().getFullYear()}-${bookingId.slice(0, 6).toUpperCase()}`
+    : 'MC-PENDING';
 
   return (
     <div className="animate-fade-in-up flex flex-col items-center justify-center py-8">

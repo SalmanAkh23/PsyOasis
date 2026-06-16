@@ -49,6 +49,7 @@ export default function Dashboard() {
   const [moodHistory, setMoodHistory] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [savedArticleCount, setSavedArticleCount] = useState(0);
 
   useEffect(() => {
     if (!loading && !user) router.replace('/');
@@ -58,10 +59,10 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user) return;
     setLoadingData(true);
-    getUserBookings(user.uid)
-      .then(setBookings)
-      .catch(() => {})
-      .finally(() => setLoadingData(false));
+    Promise.all([
+      getUserBookings(user.uid).then(setBookings),
+      getSavedArticles(user.uid).then((ids) => setSavedArticleCount(ids.length)),
+    ]).catch(() => {}).finally(() => setLoadingData(false));
   }, [user]);
 
   useEffect(() => {
@@ -81,7 +82,7 @@ export default function Dashboard() {
     { icon: Calendar, label: 'Konsultasi Mendatang', value: upcoming.length },
     { icon: CheckCircle, label: 'Konsultasi Selesai', value: completed.length },
     { icon: Heart, label: 'Psikolog Favorit', value: user.favorites?.length || 0 },
-    { icon: Bookmark, label: 'Artikel Tersimpan', value: 0 },
+    { icon: Bookmark, label: 'Artikel Tersimpan', value: savedArticleCount },
   ];
 
   return (

@@ -16,12 +16,13 @@ const toggleDefs = [
 ]
 
 export default function PengaturanPage() {
-  const { user, loading } = useAuth() as any;
+  const { user, loading, updateUserProfile, resetPassword } = useAuth() as any;
   const { showToast } = useToast();
   const router = useRouter();
   const [settings, setSettings] = useState<Record<string, boolean>>({});
   const [loaded, setLoaded] = useState(false);
   const [privacyMode, setPrivacyMode] = useState(false);
+  const [sendingReset, setSendingReset] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -37,6 +38,7 @@ export default function PengaturanPage() {
       setSettings({ booking: true, reminder: true, articles: false, promo: false });
       setLoaded(true);
     });
+    setPrivacyMode(user.settings?.privacyMode ?? false);
   }, [user]);
 
   const toggleSetting = async (id: string) => {
@@ -49,6 +51,27 @@ export default function PengaturanPage() {
         setSettings(settings);
       }
     }
+  };
+
+  const togglePrivacyMode = async () => {
+    const next = !privacyMode;
+    setPrivacyMode(next);
+    try {
+      await updateUserProfile({ settings: { ...user.settings, privacyMode: next } });
+    } catch {
+      setPrivacyMode(privacyMode);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    setSendingReset(true);
+    try {
+      await resetPassword(user.email);
+      showToast('success', 'Link reset password telah dikirim ke email Anda');
+    } catch {
+      showToast('error', 'Gagal mengirim email reset password');
+    }
+    setSendingReset(false);
   };
 
   if (loading || !user) return null;
@@ -110,13 +133,12 @@ export default function PengaturanPage() {
         </div>
         <div className="p-5">
           <button
-            onClick={() => {
-              showToast('success', 'Link reset password telah dikirim ke email Anda');
-            }}
-            className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-[#c4c6d4] hover:bg-[#eeeef0] transition-colors"
+            onClick={handleResetPassword}
+            disabled={sendingReset}
+            className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-[#c4c6d4] hover:bg-[#eeeef0] transition-colors disabled:opacity-50"
           >
             <span className="text-sm font-medium text-[#1a1c1e] font-['Inter']">Ubah Password</span>
-            <span className="text-xs text-[#002768] font-semibold font-['Inter']">Kirim Email</span>
+            <span className="text-xs text-[#002768] font-semibold font-['Inter']">{sendingReset ? 'Mengirim...' : 'Kirim Email'}</span>
           </button>
         </div>
       </div>
@@ -132,7 +154,7 @@ export default function PengaturanPage() {
               <div className="text-xs text-[#434652] mt-0.5 font-['Inter']">Sembunyikan detail sesi dari notifikasi</div>
             </div>
             <button
-              onClick={() => setPrivacyMode(!privacyMode)}
+              onClick={togglePrivacyMode}
               className={`relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 ${
                 privacyMode ? 'bg-[#002768]' : 'bg-[#c4c6d4]'
               }`}

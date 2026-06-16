@@ -44,6 +44,7 @@ export async function createBooking(data: {
     complaint: data.complaint,
     fee: data.fee,
     status: 'dikonfirmasi',
+    payment_status: 'lunas',
     created_at: new Date().toISOString(),
   }).select();
   if (error) throw error;
@@ -238,4 +239,21 @@ export async function getPaymentHistory(userId: string) {
     .eq('status', 'selesai')
     .order('date', { ascending: false });
   return toCamelCase(data || []);
+}
+
+export async function getLandingStats() {
+  const { count: psychologistCount } = await supabase
+    .from('psychologists')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'active');
+
+  const { count: sessionCount } = await supabase
+    .from('bookings')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'selesai');
+
+  return {
+    psychologistCount: psychologistCount || 0,
+    sessionCount: sessionCount || 0,
+  };
 }

@@ -127,7 +127,18 @@ export default function KonsultasiPage() {
                     </div>
                     <div className="flex items-center gap-3">
                       <span className={`px-3 py-1 rounded-full text-[10px] font-semibold font-['Inter'] ${status.classes}`}>{status.label}</span>
-                      {(b.status === 'dikonfirmasi' || b.status === 'pending') && (
+                      {b.status === 'dikonfirmasi' && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); router.push(`/dashboard/konsultasi/sesi/${b.id}`); }}
+                          className="px-4 py-1.5 rounded-full text-[10px] font-semibold font-['Inter'] bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors flex items-center gap-1"
+                        >
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9.75a.75.75 0 0 0 .75-.75V6a.75.75 0 0 0-.75-.75H4.5A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+                          </svg>
+                          Mulai
+                        </button>
+                      )}
+                      {(b.status === 'pending') && (
                         <button
                           onClick={(e) => { e.stopPropagation(); handleCancel(b.id); }}
                           className="px-3 py-1 rounded-full text-[10px] font-semibold font-['Inter'] bg-red-50 text-red-600 hover:bg-red-100 transition-colors"

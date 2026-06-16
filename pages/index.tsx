@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { getLandingStats } from '../lib/db';
+import { services } from '../lib/services';
 
 const navLinks = [
   { label: 'Home', href: '#', active: true },
@@ -14,8 +16,10 @@ export default function Home() {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [stats, setStats] = useState({ psychologistCount: 0, sessionCount: 0 });
 
   useEffect(() => {
+    getLandingStats().then(s => setStats(s)).catch(() => {});
     setLoaded(true);
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll);
@@ -188,9 +192,9 @@ export default function Home() {
         <div className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { value: '120+', label: 'Psikolog Profesional' },
+              { value: `${stats.psychologistCount || 120}+`, label: 'Psikolog Profesional' },
               { value: '98%', label: 'Kepuasan Pengguna' },
-              { value: '10k+', label: 'Sesi Sukses' },
+              { value: `${(stats.sessionCount > 0 ? Math.round(stats.sessionCount / 100) * 100 : 10)}+`, label: 'Sesi Sukses' },
               { value: '24/7', label: 'Akses Mudah' },
             ].map((stat, i) => (
               <div key={i} className={`text-center px-4 ${i > 0 ? 'md:border-l md:border-outline-variant/20' : ''}`}>
@@ -211,31 +215,37 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[
-            { icon: 'person', title: 'Konseling Individu', desc: 'Bantu dirimu mengeksplorasi emosi dan rintangan pribadi bersama psikolog pilihan secara privat.' },
-            { icon: 'favorite', title: 'Konseling Pernikahan', desc: 'Bangun harmoni, perbaiki komunikasi, dan temukan solusi terbaik untuk hubungan pasutri.' },
-            { icon: 'diversity_1', title: 'Konseling Keluarga', desc: 'Harmonisasikan hubungan antar anggota keluarga dan atasi konflik domestik secara bijaksana.' },
-            { icon: 'psychology', title: 'Anxiety Therapy', desc: 'Atasi kecemasan berlebih, serangan panik, dan temukan ketenangan batin yang sejati.' },
-            { icon: 'sentiment_satisfied', title: 'Depression Therapy', desc: 'Mari temukan kembali harapan dan semangat hidup melalui metode terapi kognitif teruji.' },
-            { icon: 'work', title: 'Career Counseling', desc: 'Dapatkan panduan profesional untuk meraih potensi karier maksimal dan mengatasi tantangan pekerjaan.' },
-          ].map((svc) => (
-            <div
-              key={svc.title}
-              className="bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/30 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 group"
-            >
-              <div className="w-14 h-14 bg-surface-container flex items-center justify-center rounded-2xl mb-6 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                <span className="material-symbols-outlined text-3xl">{svc.icon}</span>
-              </div>
-              <h4 className="font-headline-md text-xl font-bold text-on-surface mb-3">{svc.title}</h4>
-              <p className="font-body-md text-body-md text-on-surface-variant mb-6 min-h-[80px]">{svc.desc}</p>
-              <Link
-                href="/booking"
-                className="inline-flex items-center gap-2 font-label-md text-label-md text-primary group-hover:text-primary-container transition-colors"
+          {(() => {
+            const materialIcons: Record<string, string> = {
+              'Konseling Individu': 'person',
+              'Konseling Pernikahan': 'favorite',
+              'Konseling Keluarga': 'diversity_1',
+              'Konseling Remaja': 'school',
+              'Konseling Anak': 'child_care',
+              'Anxiety Therapy': 'psychology',
+              'Depression Therapy': 'sentiment_satisfied',
+              'Burnout Recovery': 'bolt',
+              'Career Counseling': 'work',
+            };
+            return services.filter(s => materialIcons[s.title]).slice(0, 6).map((svc) => (
+              <div
+                key={svc.title}
+                className="bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/30 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 group"
               >
-                Pelajari Selengkapnya <span className="material-symbols-outlined text-sm">arrow_forward</span>
-              </Link>
-            </div>
-          ))}
+                <div className="w-14 h-14 bg-surface-container flex items-center justify-center rounded-2xl mb-6 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                  <span className="material-symbols-outlined text-3xl">{materialIcons[svc.title]}</span>
+                </div>
+                <h4 className="font-headline-md text-xl font-bold text-on-surface mb-3">{svc.title}</h4>
+                <p className="font-body-md text-body-md text-on-surface-variant mb-6 min-h-[80px]">{svc.desc}</p>
+                <Link
+                  href="/booking"
+                  className="inline-flex items-center gap-2 font-label-md text-label-md text-primary group-hover:text-primary-container transition-colors"
+                >
+                  Pelajari Selengkapnya <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                </Link>
+              </div>
+            ));
+          })()}
         </div>
       </section>
 

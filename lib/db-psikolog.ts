@@ -299,13 +299,22 @@ export async function updatePsychologistProfile(
 // === BOOKING DATA ===
 
 export async function getBookedTimes(psychologistId: string, date: string) {
+  // Try RPC first (bypasses RLS), fallback to direct query
+  try {
+    const { data, error } = await supabase.rpc('get_booked_times', {
+      p_psychologist_id: psychologistId,
+      p_date: date,
+    });
+    if (!error) return (data || []) as string[];
+  } catch {}
+  // Fallback: direct query (respects RLS)
   const { data } = await supabase
     .from('bookings')
     .select('time')
     .eq('psychologist_id', psychologistId)
     .eq('date', date)
     .neq('status', 'dibatalkan');
-  return (data || []).map((r) => r.time);
+  return ((data || []).map((r: any) => r.time)) as string[];
 }
 
 export async function getPsychologists() {
@@ -315,4 +324,39 @@ export async function getPsychologists() {
     .eq('status', 'active')
     .order('name', { ascending: true });
   return toCamelCase(data || []);
+}
+
+export async function createBookingByDoctor(data: {
+  psychologistId: string
+  patientName: string
+  patientEmail?: string
+  patientWa?: string
+  serviceId: string
+  serviceName: string
+  date: string
+  time: string
+  mode: string
+  complaint?: string
+  fee: string
+}) {
+  const { data: inserted, error } = await supabase.from('bookings').insert({
+    user_id: (await supabase.auth.getUser()).data.user?.id,
+    user_name: data.patientName,
+    user_email: data.patientEmail || '',
+    user_wa: data.patientWa || '',
+    psychologist_id: data.psychologistId,
+    psychologist_name: '',
+    service_id: data.serviceId,
+    service_name: data.serviceName,
+    date: data.date,
+    time: data.time,
+    mode: data.mode,
+    complaint: data.complaint || '',
+    fee: data.fee,
+    status: 'dikonfirmasi',
+    payment_status: 'lunas',
+    created_at: new Date().toISOString(),
+  }).select();
+  if (error) throw error;
+  return inserted?.[0] || null;
 }

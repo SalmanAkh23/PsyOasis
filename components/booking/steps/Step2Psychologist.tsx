@@ -1,17 +1,6 @@
 ﻿import React, { useEffect, useState } from 'react';
 import { getPsychologists } from '../../../lib/db-psikolog';
-
-const services = [
-  { id: 's1', title: 'Konseling Individu' },
-  { id: 's2', title: 'Konseling Pernikahan' },
-  { id: 's3', title: 'Konseling Keluarga' },
-  { id: 's4', title: 'Konseling Remaja' },
-  { id: 's5', title: 'Konseling Anak' },
-  { id: 's6', title: 'Anxiety Therapy' },
-  { id: 's7', title: 'Depression Therapy' },
-  { id: 's8', title: 'Burnout Recovery' },
-  { id: 's9', title: 'Career Counseling' },
-];
+import { services } from '../../../lib/services';
 
 const avatarColors = [
   'from-purple-500 to-indigo-600',

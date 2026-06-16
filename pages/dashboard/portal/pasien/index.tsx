@@ -129,7 +129,7 @@ export default function PortalPasien() {
                       </td>
                       <td className="p-4">
                         <button
-                          onClick={() => {/* TODO: open chat or detail */}}
+                          onClick={(e) => { e.stopPropagation(); router.push(`/dashboard/portal/pasien/${p.id}`); }}
                           className="flex items-center gap-1 text-primary font-label-sm text-label-sm hover:underline"
                         >
                           <span className="material-symbols-outlined text-[16px]">chat</span>

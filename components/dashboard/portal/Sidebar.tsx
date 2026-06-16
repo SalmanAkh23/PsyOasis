@@ -38,7 +38,7 @@ export default function PortalSidebar() {
 
       <div className="px-4 mb-6">
         <button
-          onClick={() => router.push('/booking')}
+          onClick={() => router.push('/dashboard/portal/jadwal?new=1')}
           className="w-full bg-primary text-on-primary py-3 rounded-lg font-label-md text-label-md active:scale-95 duration-200 shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2"
         >
           <span className="material-symbols-outlined text-[20px]">add</span>

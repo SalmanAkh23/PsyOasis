@@ -107,8 +107,14 @@ export default function TagihanPage() {
                           <p className="text-sm font-bold text-[#1a1c1e] font-['Inter']">
                             Rp{formatFee(txn.fee).toLocaleString('id-ID')}
                           </p>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-600 font-['Inter']">
-                            Lunas
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-semibold font-['Inter'] ${
+                            txn.paymentStatus === 'lunas'
+                              ? 'bg-emerald-50 text-emerald-600'
+                              : txn.paymentStatus === 'pending'
+                              ? 'bg-amber-50 text-amber-600'
+                              : 'bg-red-50 text-red-600'
+                          }`}>
+                            {txn.paymentStatus === 'lunas' ? 'Lunas' : txn.paymentStatus === 'pending' ? 'Pending' : 'Gagal'}
                           </span>
                         </div>
                       </div>

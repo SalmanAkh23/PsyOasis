@@ -5,6 +5,7 @@ import DashboardLayout from '../components/dashboard/DashboardLayout'
 import PortalLayout from '../components/dashboard/portal/Layout'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../components/ui/Toast'
+import { getUserBookings } from '../lib/db'
 import { Camera, Shield } from 'lucide-react'
 
 export default function ProfilePage() {
@@ -25,6 +26,7 @@ export default function ProfilePage() {
   const [waNotif, setWaNotif] = useState(false)
   const [pushNotif, setPushNotif] = useState(false)
   const [sendingReset, setSendingReset] = useState(false)
+  const [sessionCount, setSessionCount] = useState(0)
 
   useEffect(() => {
     if (user) {
@@ -38,6 +40,7 @@ export default function ProfilePage() {
       setEmailNotif(user.settings?.emailNotif ?? false)
       setWaNotif(user.settings?.waNotif ?? false)
       setPushNotif(user.settings?.pushNotif ?? false)
+      getUserBookings(user.uid).then(b => setSessionCount(b.filter((x: any) => x.status === 'selesai').length)).catch(() => {})
     }
   }, [user])
 
@@ -164,14 +167,7 @@ export default function ProfilePage() {
 
         {/* Profile Header */}
         <section className="bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden mb-6">
-          <div className="absolute top-0 right-0 p-6">
-            <span className="bg-[#7afc9a] text-[#006d31] px-4 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 shadow-sm font-['Inter']">
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
-              </svg>
-              Premium Member
-            </span>
-          </div>
+
           <div className="relative">
             <button
               type="button"
@@ -227,7 +223,7 @@ export default function ProfilePage() {
                   <circle cx="12" cy="12" r="10" />
                   <path d="M12 6v6l4 2" />
                 </svg>
-                Belum ada sesi
+                {sessionCount > 0 ? `${sessionCount} sesi selesai` : 'Belum ada sesi'}
               </span>
               <button
                 type="button"
@@ -354,7 +350,7 @@ export default function ProfilePage() {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-[#1a1c1e] font-['Inter']">Kata Sandi</p>
-                      <p className="text-[10px] font-medium text-[#747783] tracking-[0.05em] font-['Inter']">Terakhir diubah 3 bulan lalu</p>
+                      <p className="text-[10px] font-medium text-[#747783] tracking-[0.05em] font-['Inter']">Terakhir masuk {user.lastSignInAt ? new Date(user.lastSignInAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}</p>
                     </div>
                   </div>
                   <button
@@ -478,7 +474,7 @@ export default function ProfilePage() {
                 type="button"
                 onClick={() => {
                   if (window.confirm('Apakah Anda yakin ingin menghapus akun? Tindakan ini tidak dapat dibatalkan.')) {
-                    showToast('success', 'Fitur hapus akun akan segera tersedia')
+                    showToast('success', 'Silakan hubungi support@psyoaas.com untuk menghapus akun')
                   }
                 }}
                 className="w-full text-[#ba1a1a] border border-[#ba1a1a]/30 py-3 rounded-xl text-sm font-medium hover:bg-[#ba1a1a]/5 transition-colors font-['Inter']"

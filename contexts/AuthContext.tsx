@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
+import type { User } from '../lib/types';
 
 interface AuthContextProps {
-  user: any;
+  user: User | null;
   loading: boolean;
   register: (email: string, password: string, displayName: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
@@ -52,12 +53,13 @@ const getProfile = async (userId: string) => {
   return {};
 };
 
-const buildUser = (session: any, profile: any) => {
+const buildUser = (session: any, profile: any): User | null => {
   if (!session?.user) return null;
   const au = session.user;
   return {
     uid: au.id,
     email: au.email,
+    lastSignInAt: au.last_sign_in_at,
     displayName: profile?.display_name || au.user_metadata?.display_name || au.email?.split('@')[0] || 'User',
     role: profile?.role || 'user',
     status: profile?.status || 'active',
@@ -78,7 +80,7 @@ const buildUser = (session: any, profile: any) => {
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refreshUserWithProfile = async (session: any) => {

@@ -100,6 +100,8 @@ CREATE TABLE IF NOT EXISTS bookings (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_status TEXT DEFAULT 'lunas';
+
 -- Notifications
 CREATE TABLE IF NOT EXISTS notifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -209,6 +211,7 @@ DROP POLICY IF EXISTS bookings_select_own ON bookings;
 DROP POLICY IF EXISTS bookings_select_psychologist ON bookings;
 DROP POLICY IF EXISTS bookings_select_admin ON bookings;
 DROP POLICY IF EXISTS bookings_insert_own ON bookings;
+DROP POLICY IF EXISTS bookings_insert_psychologist ON bookings;
 DROP POLICY IF EXISTS bookings_update_own ON bookings;
 DROP POLICY IF EXISTS bookings_update_psychologist ON bookings;
 DROP POLICY IF EXISTS bookings_update_admin ON bookings;
@@ -218,6 +221,9 @@ CREATE POLICY bookings_select_psychologist ON bookings FOR SELECT USING (
 );
 CREATE POLICY bookings_select_admin ON bookings FOR SELECT USING (public.is_admin());
 CREATE POLICY bookings_insert_own ON bookings FOR INSERT WITH CHECK (user_id = auth.uid());
+CREATE POLICY bookings_insert_psychologist ON bookings FOR INSERT WITH CHECK (
+  psychologist_id IN (SELECT id FROM psychologists WHERE user_id = auth.uid())
+);
 CREATE POLICY bookings_update_own ON bookings FOR UPDATE USING (user_id = auth.uid());
 CREATE POLICY bookings_update_psychologist ON bookings FOR UPDATE USING (
   psychologist_id IN (SELECT id FROM psychologists WHERE user_id = auth.uid())
@@ -293,6 +299,9 @@ CREATE POLICY schedules_update_own ON psychologist_schedules FOR UPDATE USING (
 CREATE POLICY schedules_delete_own ON psychologist_schedules FOR DELETE USING (
   psychologist_id IN (SELECT id FROM psychologists WHERE user_id = auth.uid())
 );
+-- Allow patients/public to read schedules (needed for booking)
+DROP POLICY IF EXISTS schedules_select_public ON psychologist_schedules;
+CREATE POLICY schedules_select_public ON psychologist_schedules FOR SELECT USING (true);
 
 -- Psychologist time-off: own only
 DROP POLICY IF EXISTS timeoff_select_own ON psychologist_time_off;
@@ -307,6 +316,9 @@ CREATE POLICY timeoff_insert_own ON psychologist_time_off FOR INSERT WITH CHECK 
 CREATE POLICY timeoff_delete_own ON psychologist_time_off FOR DELETE USING (
   psychologist_id IN (SELECT id FROM psychologists WHERE user_id = auth.uid())
 );
+-- Allow patients/public to read time-off (needed for booking)
+DROP POLICY IF EXISTS timeoff_select_public ON psychologist_time_off;
+CREATE POLICY timeoff_select_public ON psychologist_time_off FOR SELECT USING (true);
 
 -- Storage bucket untuk foto profil psikolog
 INSERT INTO storage.buckets (id, name, public)
@@ -337,3 +349,13 @@ CREATE POLICY "psychologist_photos_delete" ON storage.objects
     bucket_id = 'psychologist-photos'
     AND auth.role() = 'authenticated'
   );
+
+-- RPC function for patients to check booked times (bypasses RLS safely)
+CREATE OR REPLACE FUNCTION get_booked_times(p_psychologist_id UUID, p_date TEXT)
+RETURNS TABLE(booked_time TEXT) AS $$
+  SELECT time FROM bookings
+  WHERE psychologist_id = p_psychologist_id
+    AND date = p_date
+    AND status != 'dibatalkan'
+  ORDER BY time;
+$$ LANGUAGE sql SECURITY DEFINER;

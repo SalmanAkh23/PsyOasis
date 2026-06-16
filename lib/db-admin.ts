@@ -179,7 +179,7 @@ export async function createArticle(data: {
   authorName: string
   imageUrl?: string
 }) {
-  await supabase.from('articles').insert({
+  const { error } = await supabase.from('articles').insert({
     title: data.title,
     content: data.content,
     excerpt: data.excerpt,
@@ -189,8 +189,63 @@ export async function createArticle(data: {
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   });
+  if (error) throw error;
+}
+
+export async function updateArticle(articleId: string, data: {
+  title?: string
+  content?: string
+  excerpt?: string
+  category?: string
+  authorName?: string
+  imageUrl?: string
+}) {
+  const payload: Record<string, any> = { updated_at: new Date().toISOString() };
+  if (data.title !== undefined) payload.title = data.title;
+  if (data.content !== undefined) payload.content = data.content;
+  if (data.excerpt !== undefined) payload.excerpt = data.excerpt;
+  if (data.category !== undefined) payload.category = data.category;
+  if (data.authorName !== undefined) payload.author_name = data.authorName;
+  if (data.imageUrl !== undefined) payload.image_url = data.imageUrl;
+
+  const { error } = await supabase.from('articles').update(payload).eq('id', articleId);
+  if (error) throw error;
 }
 
 export async function deleteArticle(articleId: string) {
-  await supabase.from('articles').delete().eq('id', articleId);
+  const { error } = await supabase.from('articles').delete().eq('id', articleId);
+  if (error) throw error;
+}
+
+export async function getMonthlyBookings() {
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+  const startDate = sixMonthsAgo.toISOString().split('T')[0];
+
+  const { data } = await supabase
+    .from('bookings')
+    .select('date, fee, status')
+    .gte('created_at', startDate)
+    .order('date', { ascending: true });
+
+  if (!data) return { monthlyCounts: [0, 0, 0, 0, 0, 0], monthlyRevenue: [0, 0, 0, 0, 0, 0] };
+
+  const monthlyCounts = [0, 0, 0, 0, 0, 0];
+  const monthlyRevenue = [0, 0, 0, 0, 0, 0];
+  const now = new Date();
+
+  for (const b of data) {
+    const d = new Date(b.date);
+    const monthDiff = (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth());
+    const idx = 5 - monthDiff;
+    if (idx >= 0 && idx < 6) {
+      monthlyCounts[idx]++;
+      if (b.status === 'selesai') {
+        const fee = parseInt((b.fee || '0').replace(/[^0-9]/g, '')) || 0;
+        monthlyRevenue[idx] += fee;
+      }
+    }
+  }
+
+  return { monthlyCounts, monthlyRevenue };
 }

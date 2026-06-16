@@ -1,0 +1,12 @@
+{
+  "name": "psyoasis-signaling",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node signaling.js",
+    "dev": "node signaling.js"
+  },
+  "dependencies": {
+    "ws": "^8.16.0"
+  }
+}
