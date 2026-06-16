@@ -2,58 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap');
-
 html, body, #__next { 
   min-height: 100%; 
-  background-color: #F7F9F6;
-  color: #2D3732;
-  font-family: 'Outfit', sans-serif;
+  background-color: #f9f9fc;
+  color: #1a1c1e;
+  font-family: 'Inter', sans-serif;
   overflow-x: hidden;
   scroll-behavior: smooth;
 }
 
-/* Custom scrollbar (subtle, calm) */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #F7F9F6;
+  background: #f3f3f6;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(45,55,50,0.18);
+  background: rgba(67,70,82,0.15);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(45,55,50,0.28);
+  background: rgba(67,70,82,0.25);
 }
 
-/* Glassmorphism utility (soft healthcare vibe) */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
 .glass-panel {
-  background: rgba(247, 249, 246, 0.6);
+  background: rgba(249, 249, 252, 0.6);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(112, 144, 133, 0.12);
+  border: 1px solid rgba(116, 119, 131, 0.12);
 }
 
-.glass-panel-hover:hover {
-  border-color: rgba(74, 122, 150, 0.20);
-  box-shadow: 0 6px 18px rgba(74, 122, 150, 0.06);
-  transform: translateY(-1px);
-  transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
-/* Subtle soft shadow utilities */
-.text-soft-shadow {
-  text-shadow: 0 1px 6px rgba(45,55,50,0.06);
-}
-
-.soft-border-glow {
-  box-shadow: 0 6px 18px rgba(74,122,150,0.06);
-  border-color: rgba(74,122,150,0.12);
-}
-
-/* Keyframe animations (gentle) */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-6px); }
@@ -64,13 +64,6 @@ html, body, #__next {
   50% { opacity: 0.6; }
 }
 
-@keyframes anime-slash {
-  0% { transform: scaleX(0); opacity: 0; }
-  20% { transform: scaleX(1); opacity: 1; }
-  80% { transform: scaleX(1); opacity: 0.8; }
-  100% { transform: scaleX(0); opacity: 0; }
-}
-
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }
@@ -78,71 +71,3 @@ html, body, #__next {
 .animate-pulse-slow {
   animation: pulse-slow 4s ease-in-out infinite;
 }
-
-/* Font styles */
-.font-space {
-  font-family: 'Space Grotesk', sans-serif;
-}
-
-/* PsyOasis — Input color system and accessibility fixes
-   Ensures inputs, textareas, and selects have high-contrast text,
-   consistent placeholders, and clear focus / error / disabled states.
-*/
-:root {
-  --psy-input-text: #2D3732; /* Charcoal Green */
-  --psy-placeholder-rgb: 112,144,133; /* #709085 */
-  --psy-placeholder: rgba(var(--psy-placeholder-rgb), 0.55);
-  --psy-input-bg: #FFFFFF;
-  --psy-input-bg-alt: #F7F9F6;
-  --psy-input-border: #D9E2DC;
-  --psy-input-focus: #4A7A96;
-  --psy-input-error: #E53E3E;
-}
-
-/* Apply to native form controls and common custom inputs */
-input, textarea, select, .psy-input, .psy-textarea, .psy-select {
-  color: var(--psy-input-text) !important;
-  background-color: var(--psy-input-bg) !important;
-  border: 1px solid var(--psy-input-border) !important;
-  border-radius: 12px;
-  padding: 0.5rem 0.75rem !important;
-  font-size: 0.9375rem; /* 15px approx */
-  line-height: 1.3;
-}
-
-/* Placeholder color (override Tailwind utilities if present) */
-input::placeholder, textarea::placeholder {
-  color: var(--psy-placeholder) !important;
-  opacity: 1 !important; /* ensure consistent opacity across browsers */
-}
-
-/* Focus / hover states */
-input:focus, textarea:focus, select:focus,
-.psy-input:focus, .psy-textarea:focus, .psy-select:focus {
-  outline: none !important;
-  border-color: var(--psy-input-focus) !important;
-  box-shadow: 0 6px 18px rgba(74,122,150,0.08) !important;
-}
-
-input:hover, textarea:hover, select:hover {
-  border-color: rgba(45,55,50,0.12) !important;
-}
-
-/* Error and invalid state */
-input[aria-invalid="true"], textarea[aria-invalid="true"], select[aria-invalid="true"],
-.input-error {
-  border-color: var(--psy-input-error) !important;
-  box-shadow: 0 6px 18px rgba(229,62,62,0.08) !important;
-}
-
-/* Disabled */
-input:disabled, textarea:disabled, select:disabled {
-  opacity: 0.6 !important;
-  cursor: not-allowed !important;
-  background-color: var(--psy-input-bg-alt) !important;
-}
-
-/* Make sure small input text is visible in case a component applied text-white */
-input, textarea, select { caret-color: var(--psy-input-text) !important; }
-
-

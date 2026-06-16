@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+﻿import React, { useEffect, useState } from 'react'
 import Head from 'next/head'
 import DashboardLayout from '../../components/dashboard/DashboardLayout'
 import { useAuth } from '../../contexts/AuthContext'
@@ -52,26 +52,26 @@ export default function NotifikasiPage() {
 
   return (
     <>
-      <Head><title>Notifikasi – PsyOasis</title></Head>
+      <Head><title>Notifikasi â€“ PsyOasis</title></Head>
       <DashboardLayout>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-xl font-bold text-[#1E293B] font-['Poppins']">Notifikasi</h1>
-            <p className="text-xs text-[#64748B] mt-0.5 font-['Inter']">Pemberitahuan dan pengingat untuk Anda</p>
+            <h1 className="text-xl font-bold text-[#1a1c1e] font-['Poppins']">Notifikasi</h1>
+            <p className="text-xs text-[#434652] mt-0.5 font-['Inter']">Pemberitahuan dan pengingat untuk Anda</p>
           </div>
           <button
             onClick={handleMarkAllRead}
-            className="text-xs font-semibold text-[#2D5D7B] hover:text-[#244A63] transition-colors font-['Inter']"
+            className="text-xs font-semibold text-[#002768] hover:text-[#003b95] transition-colors font-['Inter']"
           >
             Tandai Semua Dibaca
           </button>
         </div>
 
         {loadingData ? (
-          <div className="flex items-center justify-center h-32 text-sm text-[#64748B]">Memuat...</div>
+          <div className="flex items-center justify-center h-32 text-sm text-[#434652]">Memuat...</div>
         ) : notifications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-32 text-sm text-[#64748B] gap-2">
-            <BellAlertIcon className="w-8 h-8 text-[#D1D5DB]" />
+          <div className="flex flex-col items-center justify-center h-32 text-sm text-[#434652] gap-2">
+            <BellAlertIcon className="w-8 h-8 text-[#c4c6d4]" />
             <span>Tidak ada notifikasi</span>
           </div>
         ) : (
@@ -84,8 +84,8 @@ export default function NotifikasiPage() {
                   onClick={() => { if (!n.read) handleMarkRead(n.id); }}
                   className={`rounded-2xl p-4 border transition-all cursor-pointer ${
                   !n.read
-                    ? 'bg-white border-[#E5E7EB] shadow-[0_4px_20px_rgba(0,0,0,0.04)]'
-                    : 'bg-white/60 border-[#E5E7EB]/60'
+                    ? 'bg-white border-[#c4c6d4] shadow-[0_4px_20px_rgba(0,0,0,0.04)]'
+                    : 'bg-white/60 border-[#c4c6d4]/60'
                 }`}>
                   <div className="flex items-start gap-3">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
@@ -95,11 +95,11 @@ export default function NotifikasiPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <h3 className={`text-sm font-bold font-['Poppins'] ${!n.read ? 'text-[#1E293B]' : 'text-[#64748B]'}`}>{n.title}</h3>
-                        {!n.read && <span className="w-2 h-2 rounded-full bg-[#2D5D7B] shrink-0" />}
+                        <h3 className={`text-sm font-bold font-['Poppins'] ${!n.read ? 'text-[#1a1c1e]' : 'text-[#434652]'}`}>{n.title}</h3>
+                        {!n.read && <span className="w-2 h-2 rounded-full bg-[#002768] shrink-0" />}
                       </div>
-                      <p className="text-xs text-[#64748B] mt-0.5 font-['Inter']">{n.message}</p>
-                      <span className="text-[10px] text-[#94A3B8] mt-1.5 block font-['Inter']">{timeAgo(n.createdAt)}</span>
+                      <p className="text-xs text-[#434652] mt-0.5 font-['Inter']">{n.message}</p>
+                      <span className="text-[10px] text-[#747783] mt-1.5 block font-['Inter']">{timeAgo(n.createdAt)}</span>
                     </div>
                   </div>
                 </div>

@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react'
+﻿import React, { useState, useEffect, useRef } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import DashboardLayout from '../components/dashboard/DashboardLayout'
+import PortalLayout from '../components/dashboard/portal/Layout'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../components/ui/Toast'
 import { Camera, Shield } from 'lucide-react'
@@ -151,23 +152,20 @@ export default function ProfilePage() {
     ? new Date(user.metadata.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
     : ''
 
-  return (
-    <>
-      <Head>
-        <title>Profil Saya – PsyOasis</title>
-      </Head>
+  const isPsychologist = user?.role === 'psychologist';
 
-      <DashboardLayout>
-        {/* Page header */}
+  const pageContent = (
+    <>
+      {/* Page header */}
         <div className="flex flex-col gap-1 mb-6">
-          <h2 className="text-[24px] font-semibold text-[#154a61] font-['Plus Jakarta Sans']">Profil Saya</h2>
+          <h2 className="text-[24px] font-semibold text-[#002768] font-['Plus Jakarta Sans']">Profil Saya</h2>
           <span className="text-sm text-[#41484c] font-['Inter']">Atur informasi pribadi dan keamanan akun</span>
         </div>
 
         {/* Profile Header */}
         <section className="bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden mb-6">
           <div className="absolute top-0 right-0 p-6">
-            <span className="bg-[#b2eae6] text-[#356b68] px-4 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 shadow-sm font-['Inter']">
+            <span className="bg-[#7afc9a] text-[#006d31] px-4 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 shadow-sm font-['Inter']">
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
               </svg>
@@ -179,7 +177,7 @@ export default function ProfilePage() {
               type="button"
               onClick={() => fileRef.current?.click()}
               disabled={uploading}
-              className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md flex items-center justify-center text-[#154a61] text-5xl font-bold bg-[#f2f4f5] hover:opacity-90 transition-opacity disabled:opacity-60"
+              className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md flex items-center justify-center text-[#002768] text-5xl font-bold bg-[#f2f4f5] hover:opacity-90 transition-opacity disabled:opacity-60"
             >
               {photoURL ? (
                 <img src={photoURL} alt="avatar" className="w-full h-full object-cover" />
@@ -191,7 +189,7 @@ export default function ProfilePage() {
               type="button"
               onClick={() => fileRef.current?.click()}
               disabled={uploading}
-              className="absolute bottom-0 right-0 bg-[#154a61] text-white p-2.5 rounded-full shadow-lg hover:scale-105 active:scale-95 transition-transform disabled:opacity-60"
+              className="absolute bottom-0 right-0 bg-[#002768] text-white p-2.5 rounded-full shadow-lg hover:scale-105 active:scale-95 transition-transform disabled:opacity-60"
             >
               {uploading ? (
                 <svg className="animate-spin w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none">
@@ -211,12 +209,12 @@ export default function ProfilePage() {
             />
           </div>
           <div className="text-center md:text-left space-y-2">
-            <h3 className="text-[32px] font-bold tracking-[-0.02em] text-[#191c1d] font-['Plus Jakarta Sans']">
+            <h3 className="text-[32px] font-bold tracking-[-0.02em] text-[#1a1c1e] font-['Plus Jakarta Sans']">
               {name || 'Pengguna'}
             </h3>
             <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-[#41484c] font-['Inter']">
               <span className="flex items-center gap-1.5">
-                <svg className="w-[18px] h-[18px] text-[#71787d]" viewBox="0 0 24 24" fill="currentColor">
+                <svg className="w-[18px] h-[18px] text-[#747783]" viewBox="0 0 24 24" fill="currentColor">
                   <rect x="3" y="4" width="18" height="18" rx="2" />
                   <path d="M3 10h18" />
                   <path d="M16 2v4" />
@@ -225,7 +223,7 @@ export default function ProfilePage() {
                 {memberSince ? `Member sejak ${memberSince}` : 'Member'}
               </span>
               <span className="flex items-center gap-1.5">
-                <svg className="w-[18px] h-[18px] text-[#71787d]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg className="w-[18px] h-[18px] text-[#747783]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="10" />
                   <path d="M12 6v6l4 2" />
                 </svg>
@@ -234,7 +232,7 @@ export default function ProfilePage() {
               <button
                 type="button"
                 onClick={() => router.push('/dashboard/riwayat')}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#b2eae6]/50 text-[#356b68] hover:bg-[#b2eae6] transition-colors text-sm font-medium"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#7afc9a]/50 text-[#006d31] hover:bg-[#7afc9a] transition-colors text-sm font-medium"
               >
                 <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="10" />
@@ -250,13 +248,13 @@ export default function ProfilePage() {
           {/* Left Column: Forms */}
           <div className="lg:col-span-2 space-y-6">
             {/* Personal Information */}
-            <section className="bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 border-l-4 border-[#154a61]">
+            <section className="bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 border-l-4 border-[#002768]">
               <div className="flex items-center gap-2 mb-6">
-                <svg className="w-5 h-5 text-[#154a61]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg className="w-5 h-5 text-[#002768]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
                   <circle cx="12" cy="7" r="4" />
                 </svg>
-                <h4 className="text-[24px] font-semibold text-[#191c1d] font-['Plus Jakarta Sans']">Informasi Pribadi</h4>
+                <h4 className="text-[24px] font-semibold text-[#1a1c1e] font-['Plus Jakarta Sans']">Informasi Pribadi</h4>
               </div>
               <form onSubmit={handleSave} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -266,7 +264,7 @@ export default function ProfilePage() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Nama lengkap"
-                      className="w-full h-[48px] px-4 bg-[#f2f4f5] border border-[#c1c7cd]/30 rounded-xl text-sm text-[#191c1d] placeholder-[#71787d] focus:outline-none focus:ring-2 focus:ring-[#154a61]/20 focus:border-[#154a61] transition-all font-['Inter']"
+                      className="w-full h-[48px] px-4 bg-[#f2f4f5] border border-[#c4c6d4]/30 rounded-xl text-sm text-[#1a1c1e] placeholder-[#747783] focus:outline-none focus:ring-2 focus:ring-[#002768]/20 focus:border-[#002768] transition-all font-['Inter']"
                     />
                   </div>
                   <div>
@@ -274,7 +272,7 @@ export default function ProfilePage() {
                     <input
                       value={user.email || ''}
                       disabled
-                      className="w-full h-[48px] px-4 bg-[#f2f4f5] border border-[#c1c7cd]/30 rounded-xl text-sm text-[#191c1d] font-['Inter'] opacity-60 cursor-not-allowed"
+                      className="w-full h-[48px] px-4 bg-[#f2f4f5] border border-[#c4c6d4]/30 rounded-xl text-sm text-[#1a1c1e] font-['Inter'] opacity-60 cursor-not-allowed"
                     />
                   </div>
                   <div>
@@ -283,7 +281,7 @@ export default function ProfilePage() {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="+62 812-3456-7890"
-                      className="w-full h-[48px] px-4 bg-[#f2f4f5] border border-[#c1c7cd]/30 rounded-xl text-sm text-[#191c1d] placeholder-[#71787d] focus:outline-none focus:ring-2 focus:ring-[#154a61]/20 focus:border-[#154a61] transition-all font-['Inter']"
+                      className="w-full h-[48px] px-4 bg-[#f2f4f5] border border-[#c4c6d4]/30 rounded-xl text-sm text-[#1a1c1e] placeholder-[#747783] focus:outline-none focus:ring-2 focus:ring-[#002768]/20 focus:border-[#002768] transition-all font-['Inter']"
                     />
                   </div>
                   <div>
@@ -292,7 +290,7 @@ export default function ProfilePage() {
                       type="date"
                       value={birthDate}
                       onChange={(e) => setBirthDate(e.target.value)}
-                      className="w-full h-[48px] px-4 bg-[#f2f4f5] border border-[#c1c7cd]/30 rounded-xl text-sm text-[#191c1d] focus:outline-none focus:ring-2 focus:ring-[#154a61]/20 focus:border-[#154a61] transition-all font-['Inter']"
+                      className="w-full h-[48px] px-4 bg-[#f2f4f5] border border-[#c4c6d4]/30 rounded-xl text-sm text-[#1a1c1e] focus:outline-none focus:ring-2 focus:ring-[#002768]/20 focus:border-[#002768] transition-all font-['Inter']"
                     />
                   </div>
                   <div>
@@ -300,7 +298,7 @@ export default function ProfilePage() {
                     <select
                       value={gender}
                       onChange={(e) => setGender(e.target.value)}
-                      className="w-full h-[48px] px-4 bg-[#f2f4f5] border border-[#c1c7cd]/30 rounded-xl text-sm text-[#191c1d] focus:outline-none focus:ring-2 focus:ring-[#154a61]/20 focus:border-[#154a61] transition-all font-['Inter']"
+                      className="w-full h-[48px] px-4 bg-[#f2f4f5] border border-[#c4c6d4]/30 rounded-xl text-sm text-[#1a1c1e] focus:outline-none focus:ring-2 focus:ring-[#002768]/20 focus:border-[#002768] transition-all font-['Inter']"
                     >
                       <option value="">Pilih</option>
                       <option value="male">Laki-laki</option>
@@ -316,14 +314,14 @@ export default function ProfilePage() {
                     onChange={(e) => setBio(e.target.value)}
                     placeholder="Tuliskan sedikit tentang diri Anda..."
                     rows={4}
-                    className="w-full px-4 py-3 bg-[#f2f4f5] border border-[#c1c7cd]/30 rounded-xl text-sm text-[#191c1d] placeholder-[#71787d] focus:outline-none focus:ring-2 focus:ring-[#154a61]/20 focus:border-[#154a61] transition-all font-['Inter'] resize-none"
+                    className="w-full px-4 py-3 bg-[#f2f4f5] border border-[#c4c6d4]/30 rounded-xl text-sm text-[#1a1c1e] placeholder-[#747783] focus:outline-none focus:ring-2 focus:ring-[#002768]/20 focus:border-[#002768] transition-all font-['Inter'] resize-none"
                   />
                 </div>
                 <div className="flex justify-end pt-2">
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-8 py-3 rounded-xl text-sm font-medium bg-[#154a61] text-white hover:shadow-lg active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed font-['Inter']"
+                    className="px-8 py-3 rounded-xl text-sm font-medium bg-[#002768] text-white hover:shadow-lg active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed font-['Inter']"
                   >
                     {saving ? (
                       <span className="flex items-center gap-2">
@@ -342,43 +340,43 @@ export default function ProfilePage() {
             {/* Account Security */}
             <section className="bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6">
               <div className="flex items-center gap-2 mb-6">
-                <Shield className="w-5 h-5 text-[#154a61]" />
-                <h4 className="text-[24px] font-semibold text-[#191c1d] font-['Plus Jakarta Sans']">Keamanan Akun</h4>
+                <Shield className="w-5 h-5 text-[#002768]" />
+                <h4 className="text-[24px] font-semibold text-[#1a1c1e] font-['Plus Jakarta Sans']">Keamanan Akun</h4>
               </div>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-[#f2f4f5] rounded-xl border border-[#c1c7cd]/20">
+                <div className="flex items-center justify-between p-4 bg-[#f2f4f5] rounded-xl border border-[#c4c6d4]/20">
                   <div className="flex items-center gap-4">
-                    <div className="bg-[#154a61]/10 p-2 rounded-lg">
-                      <svg className="w-5 h-5 text-[#154a61]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <div className="bg-[#002768]/10 p-2 rounded-lg">
+                      <svg className="w-5 h-5 text-[#002768]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                         <path d="M7 11V7a5 5 0 0110 0v4" />
                       </svg>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-[#191c1d] font-['Inter']">Kata Sandi</p>
-                      <p className="text-[10px] font-medium text-[#71787d] tracking-[0.05em] font-['Inter']">Terakhir diubah 3 bulan lalu</p>
+                      <p className="text-sm font-medium text-[#1a1c1e] font-['Inter']">Kata Sandi</p>
+                      <p className="text-[10px] font-medium text-[#747783] tracking-[0.05em] font-['Inter']">Terakhir diubah 3 bulan lalu</p>
                     </div>
                   </div>
                   <button
                     type="button"
                     disabled={sendingReset}
                     onClick={handleChangePassword}
-                    className="text-sm font-medium text-[#154a61] px-4 py-2 hover:bg-[#154a61]/5 rounded-lg transition-colors disabled:opacity-50 font-['Inter']"
+                    className="text-sm font-medium text-[#002768] px-4 py-2 hover:bg-[#002768]/5 rounded-lg transition-colors disabled:opacity-50 font-['Inter']"
                   >
                     {sendingReset ? 'Mengirim...' : 'Ubah'}
                   </button>
                 </div>
-                <div className="flex items-center justify-between p-4 bg-[#f2f4f5] rounded-xl border border-[#c1c7cd]/20">
+                <div className="flex items-center justify-between p-4 bg-[#f2f4f5] rounded-xl border border-[#c4c6d4]/20">
                   <div className="flex items-center gap-4">
-                    <div className="bg-[#154a61]/10 p-2 rounded-lg">
-                      <svg className="w-5 h-5 text-[#154a61]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <div className="bg-[#002768]/10 p-2 rounded-lg">
+                      <svg className="w-5 h-5 text-[#002768]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                         <path d="M7 11V7a5 5 0 0110 0v4" />
                         <circle cx="12" cy="16" r="1" />
                       </svg>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-[#191c1d] font-['Inter']">Otentikasi Dua Faktor (2FA)</p>
+                      <p className="text-sm font-medium text-[#1a1c1e] font-['Inter']">Otentikasi Dua Faktor (2FA)</p>
                       <p className="text-[10px] font-medium text-[#ba1a1a] tracking-[0.05em] font-['Inter]">
                         {twoFA ? 'Aktif' : 'Belum Aktif - Sangat Direkomendasikan'}
                       </p>
@@ -389,8 +387,8 @@ export default function ProfilePage() {
                     onClick={() => setTwoFA(!twoFA)}
                     className={`text-sm font-medium px-4 py-2 rounded-lg shadow-sm transition-all font-['Inter'] ${
                       twoFA
-                        ? 'bg-[#c1c7cd] text-[#41484c] hover:bg-[#b2b8be]'
-                        : 'bg-[#154a61] text-white hover:opacity-90'
+                        ? 'bg-[#c4c6d4] text-[#41484c] hover:bg-[#b2b8be]'
+                        : 'bg-[#002768] text-white hover:opacity-90'
                     }`}
                   >
                     {twoFA ? 'Nonaktifkan' : 'Aktifkan'}
@@ -405,17 +403,17 @@ export default function ProfilePage() {
             {/* Notification Settings */}
             <section className="bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6">
               <div className="flex items-center gap-2 mb-6">
-                <svg className="w-5 h-5 text-[#154a61]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg className="w-5 h-5 text-[#002768]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
                   <path d="M13.73 21a2 2 0 01-3.46 0" />
                 </svg>
-                <h4 className="text-[24px] font-semibold text-[#191c1d] font-['Plus Jakarta Sans']">Notifikasi</h4>
+                <h4 className="text-[24px] font-semibold text-[#1a1c1e] font-['Plus Jakarta Sans']">Notifikasi</h4>
               </div>
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-[#191c1d] font-['Inter']">Email</p>
-                    <p className="text-[10px] font-medium text-[#71787d] tracking-[0.05em] font-['Inter']">Laporan mingguan &amp; update</p>
+                    <p className="text-sm font-medium text-[#1a1c1e] font-['Inter']">Email</p>
+                    <p className="text-[10px] font-medium text-[#747783] tracking-[0.05em] font-['Inter']">Laporan mingguan &amp; update</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
@@ -424,13 +422,13 @@ export default function ProfilePage() {
                       onChange={() => setEmailNotif(!emailNotif)}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-[#c1c7cd] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#154a61]"></div>
+                    <div className="w-11 h-6 bg-[#c4c6d4] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#002768]"></div>
                   </label>
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-[#191c1d] font-['Inter']">WhatsApp</p>
-                    <p className="text-[10px] font-medium text-[#71787d] tracking-[0.05em] font-['Inter']">Pengingat jadwal sesi</p>
+                    <p className="text-sm font-medium text-[#1a1c1e] font-['Inter']">WhatsApp</p>
+                    <p className="text-[10px] font-medium text-[#747783] tracking-[0.05em] font-['Inter']">Pengingat jadwal sesi</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
@@ -439,13 +437,13 @@ export default function ProfilePage() {
                       onChange={() => setWaNotif(!waNotif)}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-[#c1c7cd] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#154a61]"></div>
+                    <div className="w-11 h-6 bg-[#c4c6d4] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#002768]"></div>
                   </label>
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-[#191c1d] font-['Inter']">Push Notification</p>
-                    <p className="text-[10px] font-medium text-[#71787d] tracking-[0.05em] font-['Inter']">Pesan langsung dari pakar</p>
+                    <p className="text-sm font-medium text-[#1a1c1e] font-['Inter']">Push Notification</p>
+                    <p className="text-[10px] font-medium text-[#747783] tracking-[0.05em] font-['Inter']">Pesan langsung dari pakar</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
@@ -454,20 +452,20 @@ export default function ProfilePage() {
                       onChange={() => setPushNotif(!pushNotif)}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-[#c1c7cd] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#154a61]"></div>
+                    <div className="w-11 h-6 bg-[#c4c6d4] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#002768]"></div>
                   </label>
                 </div>
               </div>
             </section>
 
             {/* Support Section */}
-            <section className="bg-[#32627a] p-6 rounded-xl text-[#addcf8] relative overflow-hidden group">
+            <section className="bg-[#003b95] p-6 rounded-xl text-[#8cabff] relative overflow-hidden group">
               <div className="relative z-10 space-y-4">
                 <h5 className="text-[24px] font-semibold text-white font-['Plus Jakarta Sans']">Butuh Bantuan?</h5>
                 <p className="text-sm opacity-80 font-['Inter']">Tim dukungan pelanggan kami tersedia 24/7 untuk membantu Anda.</p>
                 <a
                   href="mailto:support@psyoaas.com"
-                  className="block w-full bg-white text-[#154a61] px-6 py-2.5 rounded-xl text-sm font-medium text-center shadow-sm hover:bg-[#f2f4f5] transition-colors font-['Inter']"
+                  className="block w-full bg-white text-[#002768] px-6 py-2.5 rounded-xl text-sm font-medium text-center shadow-sm hover:bg-[#f2f4f5] transition-colors font-['Inter']"
                 >
                   Hubungi Kami
                 </a>
@@ -475,7 +473,7 @@ export default function ProfilePage() {
             </section>
 
             {/* Danger Zone */}
-            <div className="p-6 border-t border-[#c1c7cd]/30">
+            <div className="p-6 border-t border-[#c4c6d4]/30">
               <button
                 type="button"
                 onClick={() => {
@@ -490,7 +488,22 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
-      </DashboardLayout>
+    </>
+  );
+
+  return (
+    <>
+      <Head>
+        <title>Profil Saya – PsyOasis</title>
+      </Head>
+
+      {isPsychologist ? (
+        <PortalLayout title="Profil Saya" doctorName={user?.displayName || 'Dr. Smith'}>
+          {pageContent}
+        </PortalLayout>
+      ) : (
+        <DashboardLayout>{pageContent}</DashboardLayout>
+      )}
     </>
   )
 }

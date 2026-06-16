@@ -1,10 +1,14 @@
-import React from 'react';
+﻿import React from 'react';
 import { useRouter } from 'next/router';
 
-export default function Step7Success() {
+interface Step7SuccessProps {
+  bookingId?: string;
+}
+
+export default function Step7Success({ bookingId }: Step7SuccessProps) {
   const router = useRouter();
 
-  const bookingId = `MC-${new Date().getFullYear()}-${Math.floor(Math.random() * 100000).toString().padStart(6, '0')}`;
+  const displayId = bookingId || `MC-${new Date().getFullYear()}-${Math.floor(Math.random() * 100000).toString().padStart(6, '0')}`;
 
   return (
     <div className="animate-fade-in-up flex flex-col items-center justify-center py-8">
@@ -16,15 +20,15 @@ export default function Step7Success() {
         </div>
       </div>
 
-      <h3 className="text-3xl font-extrabold font-space text-[#2D3732] mb-2 text-center">Booking Berhasil!</h3>
-      <p className="text-[#2D3732]/55 mb-8 text-center max-w-md text-sm">
+      <h3 className="text-3xl font-extrabold font-space text-[#1a1c1e] mb-2 text-center">Booking Berhasil!</h3>
+      <p className="text-[#1a1c1e]/55 mb-8 text-center max-w-md text-sm">
         Jadwal konsultasi Anda telah berhasil dibuat. Silakan cek email Anda untuk instruksi selanjutnya.
       </p>
 
       <div className="w-full max-w-sm p-6 rounded-3xl border border-[#D9E2DC] mb-8 flex flex-col items-center gap-4 bg-white shadow-sm">
-        <div className="text-[10px] text-[#2D3732]/50 uppercase tracking-widest font-space">Nomor Booking</div>
-        <div className="text-2xl font-bold font-space text-[#4A7A96] tracking-widest bg-[#F7F9F6] px-6 py-2 rounded-xl border border-[#D9E2DC]">
-          {bookingId}
+        <div className="text-[10px] text-[#1a1c1e]/50 uppercase tracking-widest font-space">Nomor Booking</div>
+        <div className="text-2xl font-bold font-space text-[#315ab4] tracking-widest bg-[#F7F9F6] px-6 py-2 rounded-xl border border-[#D9E2DC]">
+          {displayId}
         </div>
         <div className="flex items-center gap-2 mt-2">
           <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
@@ -34,7 +38,7 @@ export default function Step7Success() {
 
       <button
         onClick={() => router.push('/dashboard')}
-        className="px-8 py-3 rounded-xl text-sm font-bold bg-[#4A7A96] hover:bg-[#3D6B82] text-white transition-all duration-300 shadow-sm"
+        className="px-8 py-3 rounded-xl text-sm font-bold bg-[#315ab4] hover:bg-[#3D6B82] text-white transition-all duration-300 shadow-sm"
       >
         Kembali ke Dashboard
       </button>

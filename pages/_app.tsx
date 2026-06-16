@@ -8,16 +8,14 @@ import { ToastProvider } from '../components/ui/Toast'
 
 function FullScreenLoader() {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#F7F9F6]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface">
       <div className="flex flex-col items-center gap-4">
-        <div className="w-16 h-16 rounded-xl bg-gradient-to-tr from-[#4A7A96] to-[#709085] flex items-center justify-center shadow-md animate-pulse">
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-          </svg>
+        <div className="w-24 h-24 flex items-center justify-center shadow-md animate-pulse">
+          <img src="/logo.png" alt="PsyOasis" className="h-full w-auto object-contain" />
         </div>
         <div className="text-center">
-          <div className="text-lg font-semibold text-[#2D3732]">PsyOasis sedang mempersiapkan ruang aman Anda...</div>
-          <div className="text-sm text-[#2D3732]/60 mt-2">Harap tunggu sebentar — kami memuat pengaturan Anda.</div>
+          <div className="text-lg font-semibold text-on-surface">PsyOasis sedang mempersiapkan ruang aman Anda...</div>
+          <div className="text-sm text-on-surface-variant mt-2">Harap tunggu sebentar — kami memuat pengaturan Anda.</div>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 
 interface ProgressStepperProps {
   currentStep: number;
@@ -12,7 +12,7 @@ export default function ProgressStepper({ currentStep, totalSteps, stepNames }: 
       <div className="absolute top-1/2 left-0 w-full h-0.5 bg-[#D9E2DC] -translate-y-1/2 rounded-full" />
 
       <div
-        className="absolute top-1/2 left-0 h-0.5 bg-[#4A7A96] -translate-y-1/2 rounded-full transition-all duration-500 ease-in-out"
+        className="absolute top-1/2 left-0 h-0.5 bg-[#315ab4] -translate-y-1/2 rounded-full transition-all duration-500 ease-in-out"
         style={{ width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%` }}
       />
 
@@ -27,10 +27,10 @@ export default function ProgressStepper({ currentStep, totalSteps, stepNames }: 
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-500 z-10 
                 ${isActive
-                  ? 'bg-[#4A7A96] text-white shadow-[0_0_10px_rgba(74,122,150,0.35)]'
+                  ? 'bg-[#315ab4] text-white shadow-[0_0_10px_rgba(74,122,150,0.35)]'
                   : isCompleted
-                    ? 'bg-[#4A7A96] text-white'
-                    : 'bg-white text-[#2D3732]/40 border-2 border-[#D9E2DC]'
+                    ? 'bg-[#315ab4] text-white'
+                    : 'bg-white text-[#1a1c1e]/40 border-2 border-[#D9E2DC]'
                 }`}
               >
                 {isCompleted ? (
@@ -42,7 +42,7 @@ export default function ProgressStepper({ currentStep, totalSteps, stepNames }: 
                 )}
               </div>
               <div className={`text-[10px] uppercase font-space mt-2.5 tracking-wider text-center
-                ${isActive ? 'text-[#4A7A96] font-bold' : isCompleted ? 'text-[#4A7A96]/70' : 'text-[#2D3732]/35'}`}
+                ${isActive ? 'text-[#315ab4] font-bold' : isCompleted ? 'text-[#315ab4]/70' : 'text-[#1a1c1e]/35'}`}
               >
                 <span className="hidden md:inline">{name}</span>
                 <span className="md:hidden">{isActive ? name : ''}</span>

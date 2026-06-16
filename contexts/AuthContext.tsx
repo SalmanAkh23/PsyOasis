@@ -1,15 +1,5 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { auth, db } from '../lib/firebase';
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  GoogleAuthProvider,
-  signInWithPopup,
-  sendPasswordResetEmail,
-  updateProfile,
-} from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
+import { supabase } from '../lib/supabase';
 
 interface AuthContextProps {
   user: any;
@@ -20,6 +10,10 @@ interface AuthContextProps {
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updateUserProfile: (data: { displayName?: string; photoURL?: string; phoneNumber?: string; bio?: string; birthDate?: string; gender?: string; emergencyContactName?: string; emergencyContactRelation?: string; settings?: Record<string, any> }) => Promise<void>;
+  refreshUser: () => Promise<void>;
+  verificationEmail: string | null;
+  resendVerificationEmail: (email?: string) => Promise<void>;
+  setVerificationEmail: (email: string | null) => void;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -30,17 +24,15 @@ export const useAuth = () => {
   return context;
 };
 
-const COOKIE_NAME = 'psyoasis_token';
+const COOKIE_NAME = 'psyoasis_auth';
 
-const setAuthCookie = (token: string | null) => {
+const setAuthCookie = (value: string | null) => {
   if (typeof window === 'undefined') return;
   try {
     const secure = window.location.protocol === 'https:';
-    const maxAge = 60 * 60 * 24 * 7;
-    if (token) {
-      const value = encodeURIComponent(token);
+    if (value) {
       const securePart = secure ? ' Secure;' : '';
-      document.cookie = `${COOKIE_NAME}=${value}; Path=/; Max-Age=${maxAge};${securePart} SameSite=Lax;`;
+      document.cookie = `${COOKIE_NAME}=${value}; Path=/; Max-Age=${60 * 60 * 24 * 7};${securePart} SameSite=Lax;`;
     } else {
       document.cookie = `${COOKIE_NAME}=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
     }
@@ -49,189 +41,185 @@ const setAuthCookie = (token: string | null) => {
   }
 };
 
-const getFirestoreProfile = async (uid: string): Promise<Record<string, any>> => {
-  if (!db) return {};
+const getProfile = async (userId: string) => {
   try {
-    const ref = doc(db, 'users', uid);
-    const snap = await getDoc(ref);
-    if (snap.exists()) {
-      return snap.data();
-    }
+    const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
+    if (error && error.code === 'PGRST116') return {};
+    if (data) return data;
   } catch (err) {
-    console.error('Firestore profile fetch error:', err);
+    console.error('Profile fetch error:', err);
   }
   return {};
+};
+
+const buildUser = (session: any, profile: any) => {
+  if (!session?.user) return null;
+  const au = session.user;
+  return {
+    uid: au.id,
+    email: au.email,
+    displayName: profile?.display_name || au.user_metadata?.display_name || au.email?.split('@')[0] || 'User',
+    role: profile?.role || 'user',
+    status: profile?.status || 'active',
+    photoURL: profile?.photo_url || '',
+    phoneNumber: profile?.phone_number || '',
+    bio: profile?.bio || '',
+    birthDate: profile?.birth_date || '',
+    gender: profile?.gender || '',
+    emergencyContactName: profile?.emergency_contact_name || '',
+    emergencyContactRelation: profile?.emergency_contact_relation || '',
+    favorites: profile?.favorites || [],
+    savedArticles: profile?.saved_articles || [],
+    settings: profile?.settings || {},
+    notificationSettings: profile?.notification_settings || {},
+    createdAt: profile?.created_at || au.created_at,
+    ...profile,
+  };
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const refreshUserWithProfile = async (firebaseUser: any) => {
-    if (!firebaseUser) {
+  const refreshUserWithProfile = async (session: any) => {
+    if (!session?.user) {
       setUser(null);
       return;
     }
-    const profile = await getFirestoreProfile(firebaseUser.uid);
-    setUser({ ...firebaseUser, ...profile });
+    const profile = await getProfile(session.user.id);
+    setUser(buildUser(session, profile));
   };
 
   useEffect(() => {
-    (async () => {
-      try {
-        const { setPersistence, browserLocalPersistence } = await import('firebase/auth');
-        if (auth && setPersistence) {
-          await setPersistence(auth, browserLocalPersistence);
-        }
-      } catch (err) {
-        console.error('Persistence set error:', err);
-      }
-    })();
+    const fallbackTimer = setTimeout(() => setLoading(false), 4000);
 
-    const unsubscribe = auth.onAuthStateChanged(async (u: any) => {
-      try {
-        if (u) {
-          await refreshUserWithProfile(u);
-        } else {
-          setUser(null);
-        }
-      } catch (err) {
-        console.error('Auth state change error:', err);
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      clearTimeout(fallbackTimer);
+      if (session) {
+        await refreshUserWithProfile(session);
+        setAuthCookie('true');
+      } else {
+        setUser(null);
       }
       setLoading(false);
-
-      try {
-        if (typeof window !== 'undefined' && u) {
-          const getId = (u as any).getIdToken;
-          if (getId) {
-            const token = await (u as any).getIdToken(true);
-            setAuthCookie(token);
-          } else {
-            setAuthCookie('dev');
-          }
-        } else if (typeof window !== 'undefined') {
-          setAuthCookie(null);
-        }
-      } catch (e) {
-        console.error('Auth token sync error:', e);
-      }
     });
 
-    return () => unsubscribe();
-  }, []);
-
-  const syncToken = async (u: any) => {
-    try {
-      if (u && (u as any).getIdToken) {
-        const token = await (u as any).getIdToken(true);
-        setAuthCookie(token);
-      } else if (u) {
-        setAuthCookie('dev');
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session) {
+        await refreshUserWithProfile(session);
+        setAuthCookie('true');
       } else {
+        setUser(null);
         setAuthCookie(null);
       }
-    } catch (e) {
-      console.error('syncToken error:', e);
+      setLoading(false);
+    });
+
+    return () => {
+      clearTimeout(fallbackTimer);
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const [verificationEmail, setVerificationEmail] = useState<string | null>(null);
+
+  const register = async (email: string, password: string, displayName: string) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { display_name: displayName } },
+    });
+    if (error) throw error;
+    if (data.session) {
+      await refreshUserWithProfile(data.session);
+      setAuthCookie('true');
+    } else {
+      setVerificationEmail(email);
     }
   };
 
-  const register = async (email: string, password: string, displayName: string) => {
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-    if (cred.user) {
-      await updateProfile(cred.user, { displayName });
-      if (db) {
-        await setDoc(doc(db, 'users', cred.user.uid), { displayName, email, createdAt: new Date().toISOString() });
-      }
-      await refreshUserWithProfile(cred.user);
-      await syncToken(cred.user);
-    }
+  const resendVerificationEmail = async (email?: string) => {
+    const target = email || verificationEmail;
+    if (!target) throw new Error('Email tidak ditemukan');
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: target,
+    });
+    if (error) throw error;
   };
 
   const login = async (email: string, password: string) => {
-    const cred = await signInWithEmailAndPassword(auth, email, password);
-    await refreshUserWithProfile(cred.user);
-    await syncToken(cred.user);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    await refreshUserWithProfile(data.session);
+    setAuthCookie('true');
   };
 
   const loginWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-    const cred = await signInWithPopup(auth, provider);
-    if (db && cred.user) {
-      const ref = doc(db, 'users', cred.user.uid);
-      const snap = await getDoc(ref);
-      if (!snap.exists()) {
-        await setDoc(ref, {
-          displayName: cred.user.displayName,
-          email: cred.user.email,
-          createdAt: new Date().toISOString(),
-        });
-      }
-    }
-    await refreshUserWithProfile(cred.user);
-    await syncToken(cred.user);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined },
+    });
+    if (error) throw error;
   };
 
   const logout = async () => {
-    await signOut(auth);
+    await supabase.auth.signOut();
     setUser(null);
-    try {
-      setAuthCookie(null);
-    } catch (e) {
-      console.error('Logout cookie clear error:', e);
-    }
+    setAuthCookie(null);
   };
 
   const resetPassword = async (email: string) => {
-    await sendPasswordResetEmail(auth, email);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/reset-password` : undefined,
+    });
+    if (error) throw error;
   };
 
   const updateUserProfile = async (data: { displayName?: string; photoURL?: string; phoneNumber?: string; bio?: string; birthDate?: string; gender?: string; emergencyContactName?: string; emergencyContactRelation?: string; settings?: Record<string, any> }) => {
-    const current = auth.currentUser;
-    if (!current) return;
-    // Update Firebase Auth fields (skip photoURL — data URL terlalu panjang)
-    const toUpdate: any = {};
-    if (data.displayName) toUpdate.displayName = data.displayName;
-    if (Object.keys(toUpdate).length > 0) {
-      try {
-        await updateProfile(current, toUpdate);
-      } catch (err) {
-        console.error('Auth profile update error:', err);
-      }
+    const session = (await supabase.auth.getSession()).data.session;
+    if (!session?.user) return;
+
+    const payload: Record<string, any> = {};
+    if (data.displayName !== undefined) payload.display_name = data.displayName;
+    if (data.phoneNumber !== undefined) payload.phone_number = data.phoneNumber;
+    if (data.bio !== undefined) payload.bio = data.bio;
+    if (data.photoURL !== undefined) payload.photo_url = data.photoURL;
+    if (data.birthDate !== undefined) payload.birth_date = data.birthDate;
+    if (data.gender !== undefined) payload.gender = data.gender;
+    if (data.emergencyContactName !== undefined) payload.emergency_contact_name = data.emergencyContactName;
+    if (data.emergencyContactRelation !== undefined) payload.emergency_contact_relation = data.emergencyContactRelation;
+    if (data.settings !== undefined) payload.settings = data.settings;
+    payload.updated_at = new Date().toISOString();
+
+    if (Object.keys(payload).length > 1) {
+      const { error } = await supabase.from('users').update(payload).eq('id', session.user.id);
+      if (error) console.error('Profile update error:', error);
     }
 
-    // Save to Firestore
-    if (db) {
-      try {
-        const ref = doc(db, 'users', current.uid);
-        const firestoreData: Record<string, any> = {};
-        if (data.displayName !== undefined) firestoreData.displayName = data.displayName;
-        if (data.phoneNumber !== undefined) firestoreData.phoneNumber = data.phoneNumber;
-        if (data.bio !== undefined) firestoreData.bio = data.bio;
-        if (data.photoURL !== undefined) firestoreData.photoURL = data.photoURL;
-        if (data.birthDate !== undefined) firestoreData.birthDate = data.birthDate;
-        if (data.gender !== undefined) firestoreData.gender = data.gender;
-        if (data.emergencyContactName !== undefined) firestoreData.emergencyContactName = data.emergencyContactName;
-        if (data.emergencyContactRelation !== undefined) firestoreData.emergencyContactRelation = data.emergencyContactRelation;
-        if (data.settings !== undefined) firestoreData.settings = data.settings;
-        if (Object.keys(firestoreData).length > 0) {
-          await setDoc(ref, firestoreData, { merge: true });
-        }
-      } catch (err) {
-        console.error('Firestore profile save error:', err);
-      }
+    if (data.displayName) {
+      await supabase.auth.updateUser({ data: { display_name: data.displayName } });
     }
 
-    // Refresh local state
-    try {
-      await refreshUserWithProfile(current);
-    } catch (err) {
-      setUser((prev: any) => ({ ...(prev || {}), ...data }));
-    }
+    await refreshUserWithProfile(session);
   };
+
+  const refreshUser = useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      await refreshUserWithProfile(session);
+    }
+  }, []);
+
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === 'visible') refreshUser(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [refreshUser]);
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, register, login, loginWithGoogle, logout, resetPassword, updateUserProfile }}
+      value={{ user, loading, register, login, loginWithGoogle, logout, resetPassword, updateUserProfile, refreshUser, verificationEmail, resendVerificationEmail, setVerificationEmail }}
     >
       {children}
     </AuthContext.Provider>

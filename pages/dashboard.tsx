@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
-import { getUserBookings, saveMood, getTodayMood, getMoodHistory } from '../lib/db';
+import { getUserBookings, getSavedArticles, saveMood, getTodayMood, getMoodHistory } from '../lib/db';
 import { useToast } from '../components/ui/Toast';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 import { motion } from 'framer-motion';
@@ -25,7 +25,7 @@ const moods = [
 ];
 
 const statIcons = [
-  { bg: '#DCEEF8', iconColor: '#2D5D7B' },
+  { bg: '#DCEEF8', iconColor: '#002768' },
   { bg: '#D4EDDA', iconColor: '#166534' },
   { bg: '#FCE4EC', iconColor: '#BE185D' },
   { bg: '#FEF3C7', iconColor: '#B45309' },
@@ -52,6 +52,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!loading && !user) router.replace('/');
+    if (!loading && user?.role === 'psychologist') router.replace('/dashboard/portal');
   }, [loading, user, router]);
 
   useEffect(() => {
@@ -86,7 +87,7 @@ export default function Dashboard() {
   return (
     <>
       <Head>
-        <title>Dashboard – PsyOasis</title>
+        <title>Dashboard â€“ PsyOasis</title>
         <meta name="description" content="Kelola sesi konsultasi dan riwayat terapi Anda di PsyOasis." />
       </Head>
 
@@ -101,13 +102,13 @@ export default function Dashboard() {
             style={{ height: '160px' }}
           >
             <div className="w-full">
-              <span className="text-[11px] font-semibold text-[#2D5D7B] tracking-[0.15em] font-['Inter']">
+              <span className="text-[11px] font-semibold text-[#002768] tracking-[0.15em] font-['Inter']">
                 SELAMAT DATANG
               </span>
-              <h1 className="text-[38px] font-bold text-[#1E293B] leading-tight mt-0.5 font-['Poppins'] truncate">
+              <h1 className="text-[38px] font-bold text-[#1a1c1e] leading-tight mt-0.5 font-['Poppins'] truncate">
                 Halo, {name}
               </h1>
-              <p className="text-sm text-[#475569] mt-1 max-w-2xl font-['Nunito_Sans'] truncate">
+              <p className="text-sm text-[#434652] mt-1 max-w-2xl font-['Nunito_Sans'] truncate">
                 Senang melihat Anda kembali di PsyOasis.
               </p>
             </div>
@@ -130,8 +131,8 @@ export default function Dashboard() {
                   style={{ height: '110px' }}
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm text-[#64748B] font-['Inter'] truncate">{s.label}</p>
-                    <p className="text-[28px] font-bold text-[#1E293B] mt-0.5 font-['Poppins']">
+                    <p className="text-sm text-[#434652] font-['Inter'] truncate">{s.label}</p>
+                    <p className="text-[28px] font-bold text-[#1a1c1e] mt-0.5 font-['Poppins']">
                       {loadingData ? '-' : s.value}
                     </p>
                   </div>
@@ -155,42 +156,42 @@ export default function Dashboard() {
               className="bg-white rounded-[20px] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.07)] transition-all duration-300 w-full overflow-hidden"
             >
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-base font-bold text-[#1E293B] font-['Poppins']">Konsultasi Mendatang</h2>
+                <h2 className="text-base font-bold text-[#1a1c1e] font-['Poppins']">Konsultasi Mendatang</h2>
                 <button
                   onClick={() => router.push('/dashboard/konsultasi')}
-                  className="text-xs font-semibold text-[#2D5D7B] hover:underline font-['Inter'] whitespace-nowrap"
+                  className="text-xs font-semibold text-[#002768] hover:underline font-['Inter'] whitespace-nowrap"
                 >
                   Lihat Semua
                 </button>
               </div>
               {loadingData ? (
-                <div className="flex items-center justify-center h-32 text-sm text-[#64748B]">
+                <div className="flex items-center justify-center h-32 text-sm text-[#434652]">
                   Memuat...
                 </div>
               ) : nextBooking ? (
                 <div className="flex items-start gap-5">
-                  <div className="w-20 h-20 rounded-[16px] bg-gradient-to-br from-[#2D5D7B] to-[#4A7A96] flex items-center justify-center text-white text-2xl font-bold shrink-0 shadow-sm">
+                  <div className="w-20 h-20 rounded-[16px] bg-gradient-to-br from-[#002768] to-[#315ab4] flex items-center justify-center text-white text-2xl font-bold shrink-0 shadow-sm">
                     {nextBooking.psychologistName?.charAt(0) || '?'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 flex-wrap">
-                      <h3 className="text-lg font-bold text-[#1E293B] font-['Poppins'] truncate">{nextBooking.psychologistName}</h3>
+                      <h3 className="text-lg font-bold text-[#1a1c1e] font-['Poppins'] truncate">{nextBooking.psychologistName}</h3>
                       <span className="px-3 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-semibold rounded-full border border-emerald-200 font-['Inter'] whitespace-nowrap shrink-0">
                         {nextBooking.status?.toUpperCase() || 'DIKONFIRMASI'}
                       </span>
                     </div>
-                    <div className="mt-3 space-y-1.5 text-sm text-[#64748B] font-['Nunito_Sans']">
+                    <div className="mt-3 space-y-1.5 text-sm text-[#434652] font-['Nunito_Sans']">
                       <div className="flex items-center gap-2.5">
-                        <Calendar className="w-4 h-4 text-[#2D5D7B] shrink-0" />
+                        <Calendar className="w-4 h-4 text-[#002768] shrink-0" />
                         <span>{nextBooking.date}</span>
                       </div>
                       <div className="flex items-center gap-2.5">
-                        <Clock className="w-4 h-4 text-[#2D5D7B] shrink-0" />
+                        <Clock className="w-4 h-4 text-[#002768] shrink-0" />
                         <span>{nextBooking.time} WIB</span>
                       </div>
                       <div className="flex items-center gap-2.5">
                         <div className="w-4 h-4 flex items-center justify-center shrink-0">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-[#2D5D7B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-[#002768]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                           </svg>
                         </div>
@@ -200,7 +201,7 @@ export default function Dashboard() {
                     <div className="flex items-center gap-3 mt-5">
                       <button
                         onClick={() => router.push('/dashboard/konsultasi')}
-                        className="px-6 py-2.5 bg-[#2D5D7B] text-white rounded-full text-xs font-semibold hover:bg-[#244A63] transition-all duration-200 shadow-sm font-['Inter'] whitespace-nowrap"
+                        className="px-6 py-2.5 bg-[#002768] text-white rounded-full text-xs font-semibold hover:bg-[#003b95] transition-all duration-200 shadow-sm font-['Inter'] whitespace-nowrap"
                       >
                         Lihat Detail
                       </button>
@@ -208,12 +209,12 @@ export default function Dashboard() {
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center h-32 text-sm text-[#64748B] gap-2">
-                  <Calendar className="w-8 h-8 text-[#D1D5DB]" />
+                <div className="flex flex-col items-center justify-center h-32 text-sm text-[#434652] gap-2">
+                  <Calendar className="w-8 h-8 text-[#c4c6d4]" />
                   <span>Belum ada konsultasi mendatang</span>
                   <button
                     onClick={() => router.push('/booking')}
-                    className="mt-1 px-4 py-2 bg-[#2D5D7B] text-white rounded-full text-xs font-semibold hover:bg-[#244A63] transition-all"
+                    className="mt-1 px-4 py-2 bg-[#002768] text-white rounded-full text-xs font-semibold hover:bg-[#003b95] transition-all"
                   >
                     Booking Sekarang
                   </button>
@@ -227,32 +228,32 @@ export default function Dashboard() {
               transition={{ duration: 0.5, delay: 0.35 }}
               className="bg-white rounded-[20px] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.07)] transition-all duration-300 w-full overflow-hidden"
             >
-              <h2 className="text-base font-bold text-[#1E293B] mb-5 font-['Poppins']">Quick Actions</h2>
+              <h2 className="text-base font-bold text-[#1a1c1e] mb-5 font-['Poppins']">Quick Actions</h2>
               <div className="space-y-3">
                 <button
                   onClick={() => router.push('/booking')}
-                  className="w-full h-[50px] flex items-center justify-center gap-2.5 bg-[#2D5D7B] text-white rounded-[12px] text-sm font-semibold hover:bg-[#244A63] transition-all duration-200 shadow-sm font-['Inter']"
+                  className="w-full h-[50px] flex items-center justify-center gap-2.5 bg-[#002768] text-white rounded-[12px] text-sm font-semibold hover:bg-[#003b95] transition-all duration-200 shadow-sm font-['Inter']"
                 >
                   <Calendar className="w-4 h-4 shrink-0" />
                   <span className="truncate">Booking Konsultasi</span>
                 </button>
                 <button
-                  onClick={() => router.push('/dashboard/favorit')}
-                  className="w-full h-[50px] flex items-center justify-center gap-2.5 border border-[#E5E7EB] text-[#64748B] rounded-[12px] text-sm font-medium hover:border-[#2D5D7B] hover:text-[#2D5D7B] transition-all duration-200 font-['Inter'] bg-white"
+                  onClick={() => router.push('/dashboard/psikolog')}
+                  className="w-full h-[50px] flex items-center justify-center gap-2.5 border border-[#c4c6d4] text-[#434652] rounded-[12px] text-sm font-medium hover:border-[#002768] hover:text-[#002768] transition-all duration-200 font-['Inter'] bg-white"
                 >
                   <Search className="w-4 h-4 shrink-0" />
                   <span className="truncate">Cari Psikolog</span>
                 </button>
                 <button
                   onClick={() => router.push('/dashboard/artikel')}
-                  className="w-full h-[50px] flex items-center justify-center gap-2.5 border border-[#E5E7EB] text-[#64748B] rounded-[12px] text-sm font-medium hover:border-[#2D5D7B] hover:text-[#2D5D7B] transition-all duration-200 font-['Inter'] bg-white"
+                  className="w-full h-[50px] flex items-center justify-center gap-2.5 border border-[#c4c6d4] text-[#434652] rounded-[12px] text-sm font-medium hover:border-[#002768] hover:text-[#002768] transition-all duration-200 font-['Inter'] bg-white"
                 >
                   <BookOpen className="w-4 h-4 shrink-0" />
                   <span className="truncate">Baca Artikel</span>
                 </button>
                 <button
                   onClick={() => router.push('/dashboard/riwayat')}
-                  className="w-full h-[50px] flex items-center justify-center gap-2.5 border border-[#E5E7EB] text-[#64748B] rounded-[12px] text-sm font-medium hover:border-[#2D5D7B] hover:text-[#2D5D7B] transition-all duration-200 font-['Inter'] bg-white"
+                  className="w-full h-[50px] flex items-center justify-center gap-2.5 border border-[#c4c6d4] text-[#434652] rounded-[12px] text-sm font-medium hover:border-[#002768] hover:text-[#002768] transition-all duration-200 font-['Inter'] bg-white"
                 >
                   <Clock className="w-4 h-4 shrink-0" />
                   <span className="truncate">Lihat Riwayat</span>
@@ -267,7 +268,7 @@ export default function Dashboard() {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="bg-white rounded-[22px] p-8 text-center shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.07)] transition-all duration-300 w-full overflow-hidden"
           >
-            <h2 className="text-2xl font-bold text-[#1E293B] mb-7 font-['Poppins']">
+            <h2 className="text-2xl font-bold text-[#1a1c1e] mb-7 font-['Poppins']">
               Bagaimana Perasaan Anda Hari Ini?
             </h2>
             <div className="flex items-center justify-center gap-6 flex-wrap">
@@ -283,13 +284,13 @@ export default function Dashboard() {
                   }}
                   className={`flex flex-col items-center justify-center gap-1.5 w-[90px] h-[90px] rounded-[16px] border transition-all duration-200 cursor-pointer hover:scale-105 ${
                     selectedMood === i
-                      ? 'border-[#2D5D7B] bg-[#DCEEF8] shadow-sm'
-                      : 'border-[#E5E7EB] bg-[#F8FAFC] hover:bg-[#F1F5F9]'
+                      ? 'border-[#002768] bg-[#DCEEF8] shadow-sm'
+                      : 'border-[#c4c6d4] bg-[#eeeef0] hover:bg-[#f2f4f5]'
                   }`}
                 >
                   <span className="text-3xl leading-none">{m.emoji}</span>
                   <span className={`text-[11px] font-semibold font-['Inter'] ${
-                    selectedMood === i ? 'text-[#2D5D7B]' : 'text-[#64748B]'
+                    selectedMood === i ? 'text-[#002768]' : 'text-[#434652]'
                   }`}>
                     {m.label}
                   </span>
@@ -305,7 +306,7 @@ export default function Dashboard() {
               transition={{ duration: 0.5, delay: 0.45 }}
               className="bg-white rounded-[22px] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] w-full overflow-hidden"
             >
-              <h2 className="text-base font-bold text-[#1E293B] mb-4 font-['Poppins']">Riwayat Mood</h2>
+              <h2 className="text-base font-bold text-[#1a1c1e] mb-4 font-['Poppins']">Riwayat Mood</h2>
               <div className="flex items-end gap-2 h-24">
                 {moodHistory.slice(0, 7).reverse().map((m: any, i: number) => {
                   const emojis = ['\u{1F60A}', '\u{1F642}', '\u{1F610}', '\u{1F614}', '\u{1F630}']
@@ -317,7 +318,7 @@ export default function Dashboard() {
                       <div className={`w-full rounded-full ${barColors[m.mood] || 'bg-slate-300'}`}
                         style={{ height: `${h}%`, maxHeight: '80px' }}
                       />
-                      <span className="text-[10px] text-[#64748B] font-['Inter'] truncate w-full text-center">
+                      <span className="text-[10px] text-[#434652] font-['Inter'] truncate w-full text-center">
                         {m.date?.slice(5) || ''}
                       </span>
                     </div>

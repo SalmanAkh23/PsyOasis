@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+﻿import React, { useState, useEffect } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useAuth } from '../contexts/AuthContext'
@@ -36,32 +36,32 @@ export default function LengkapiProfil() {
   return (
     <>
       <Head>
-        <title>Lengkapi Profil – PsyOasis</title>
+        <title>Lengkapi Profil â€“ PsyOasis</title>
       </Head>
 
       <div className="min-h-screen bg-[#F7F9F6] flex items-center justify-center p-6">
         <div className="w-full max-w-xl bg-white/80 rounded-2xl p-6">
-          <h1 className="text-xl font-bold text-[#2D3732]">Lengkapi Profil Anda</h1>
-          <p className="text-sm text-[#2D3732]/60 mt-1">Agar kami dapat menyediakan layanan yang tepat, lengkapi beberapa data berikut.</p>
+          <h1 className="text-xl font-bold text-[#1a1c1e]">Lengkapi Profil Anda</h1>
+          <p className="text-sm text-[#1a1c1e]/60 mt-1">Agar kami dapat menyediakan layanan yang tepat, lengkapi beberapa data berikut.</p>
 
           <form onSubmit={handleSave} className="mt-4 space-y-4">
             <div>
-              <label className="text-sm text-[#2D3732] font-medium">Nama Lengkap</label>
+              <label className="text-sm text-[#1a1c1e] font-medium">Nama Lengkap</label>
               <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nama lengkap" className="w-full mt-2 psy-input" />
             </div>
 
             <div>
-              <label className="text-sm text-[#2D3732] font-medium">Nomor Telepon</label>
+              <label className="text-sm text-[#1a1c1e] font-medium">Nomor Telepon</label>
               <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0812xxxx" className="w-full mt-2 psy-input" />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-sm text-[#2D3732] font-medium">Tanggal Lahir</label>
+                <label className="text-sm text-[#1a1c1e] font-medium">Tanggal Lahir</label>
                 <input type="date" value={birth} onChange={(e) => setBirth(e.target.value)} className="w-full mt-2 psy-input" />
               </div>
               <div>
-                <label className="text-sm text-[#2D3732] font-medium">Jenis Kelamin</label>
+                <label className="text-sm text-[#1a1c1e] font-medium">Jenis Kelamin</label>
                 <select value={gender} onChange={(e) => setGender(e.target.value)} className="w-full mt-2 psy-input">
                   <option value="">Pilih</option>
                   <option value="female">Perempuan</option>
@@ -72,7 +72,7 @@ export default function LengkapiProfil() {
             </div>
 
             <div className="flex items-center gap-3">
-              <button type="submit" disabled={saving} className="px-4 py-2 rounded-xl bg-[#4A7A96] text-white">Simpan</button>
+              <button type="submit" disabled={saving} className="px-4 py-2 rounded-xl bg-[#315ab4] text-white">Simpan</button>
               <button type="button" onClick={() => router.push('/dashboard')} className="px-4 py-2 rounded-xl border">Lewati</button>
             </div>
           </form>
