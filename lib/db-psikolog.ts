@@ -1,5 +1,9 @@
 import { supabase, toCamelCase } from './supabase';
 
+function sanitizeUuid(val: string): string {
+  return val.replace(/[^a-fA-F0-9\-]/g, '');
+}
+
 export async function getPsychologistByUserId(userId: string) {
   const { data } = await supabase
     .from('psychologists')
@@ -36,7 +40,7 @@ export async function getUpcomingAppointments(psychologistId: string) {
     .select('*')
     .eq('psychologist_id', psychologistId)
     .gte('date', today)
-    .in('status', ['menunggu', 'dikonfirmasi', 'selesai'])
+    .in('status', ['menunggu', 'dikonfirmasi'])
     .order('date', { ascending: true })
     .order('time', { ascending: true });
   return toCamelCase(data || []);
@@ -113,37 +117,73 @@ export async function getEarningsData(psychologistId: string) {
 }
 
 export async function updateAppointmentStatus(bookingId: string, status: string) {
-  await supabase
+  const { data, error } = await supabase
     .from('bookings')
     .update({ status, updated_at: new Date().toISOString() })
-    .eq('id', bookingId);
+    .eq('id', bookingId)
+    .select('user_id, user_name, psychologist_name');
+  if (error) throw error;
+
+  if (data?.[0]?.user_id) {
+    const b = data[0];
+    let title = '';
+    let message = '';
+    switch (status) {
+      case 'dikonfirmasi':
+        title = 'Booking Dikonfirmasi';
+        message = `Jadwal konsultasi dengan ${b.psychologist_name || 'psikolog'} telah dikonfirmasi. Silakan bergabung pada sesi yang telah dijadwalkan.`;
+        break;
+      case 'selesai':
+        title = 'Sesi Selesai';
+        message = `Sesi konsultasi dengan ${b.psychologist_name || 'psikolog'} telah selesai. Silakan lihat ringkasan sesi.`;
+        break;
+      case 'dibatalkan':
+        title = 'Booking Dibatalkan';
+        message = `Sesi konsultasi dengan ${b.psychologist_name || 'psikolog'} telah dibatalkan.`;
+        break;
+    }
+    if (title) {
+      const { error: notifError } = await supabase.rpc('create_notification', {
+        p_user_id: b.user_id,
+        p_psychologist_id: null,
+        p_title: title,
+        p_message: message,
+        p_type: 'booking',
+      });
+      if (notifError) console.error('updateAppointmentStatus notification error:', notifError);
+    }
+  }
 }
 
 export async function getPsychologistNotifications(psychologistId: string) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('notifications')
     .select('*')
     .eq('psychologist_id', psychologistId)
     .order('created_at', { ascending: false });
+  if (error) throw error;
   return toCamelCase(data || []);
 }
 
-export async function sendMessageToPatient(psychologistId: string, patientId: string, message: string) {
-  await supabase.from('messages').insert({
-    sender_id: psychologistId,
+export async function sendMessageToPatient(psychologistUserId: string, patientId: string, message: string) {
+  const { error } = await supabase.from('messages').insert({
+    sender_id: psychologistUserId,
     sender_role: 'psychologist',
     receiver_id: patientId,
     message,
     created_at: new Date().toISOString(),
     read: false,
   });
+  if (error) throw error;
 }
 
-export async function getChatMessages(psychologistId: string, patientId: string) {
+export async function getChatMessages(userIdA: string, userIdB: string) {
+  const uidA = sanitizeUuid(userIdA);
+  const uidB = sanitizeUuid(userIdB);
   const { data } = await supabase
     .from('messages')
     .select('*')
-    .or(`and(sender_id.eq.${psychologistId},receiver_id.eq.${patientId}),and(sender_id.eq.${patientId},receiver_id.eq.${psychologistId})`)
+    .or(`and(sender_id.eq.${uidA},receiver_id.eq.${uidB}),and(sender_id.eq.${uidB},receiver_id.eq.${uidA})`)
     .order('created_at', { ascending: true });
   return toCamelCase(data || []);
 }
@@ -214,24 +254,26 @@ export async function getPatientDetail(psychologistId: string, patientId: string
 }
 
 export async function saveSessionNotes(bookingId: string, notes: string) {
-  await supabase
+  const { error } = await supabase
     .from('bookings')
     .update({ notes, updated_at: new Date().toISOString() })
     .eq('id', bookingId);
+  if (error) throw error;
 }
 
 // === CHAT ===
 
-export async function getChatPatients(psychologistId: string) {
+export async function getChatPatients(psychologistUserId: string) {
+  const psyUid = sanitizeUuid(psychologistUserId);
   const { data: messages } = await supabase
     .from('messages')
     .select('*')
-    .or(`sender_id.eq.${psychologistId},receiver_id.eq.${psychologistId}`)
+    .or(`sender_id.eq.${psyUid},receiver_id.eq.${psyUid}`)
     .order('created_at', { ascending: false });
 
   const patientIds = new Set<string>();
   for (const m of messages || []) {
-    const pid = m.sender_id === psychologistId ? m.receiver_id : m.sender_id;
+    const pid = m.sender_id === psychologistUserId ? m.receiver_id : m.sender_id;
     if (pid) patientIds.add(pid);
   }
 
@@ -249,7 +291,7 @@ export async function getChatPatients(psychologistId: string) {
         lastMessage: lastMsg?.message || '',
         lastMessageTime: lastMsg?.created_at || '',
         unread: messages?.filter(
-          (m) => m.sender_id === pid && m.receiver_id === psychologistId && !m.read
+          (m) => m.sender_id === pid && m.receiver_id === psychologistUserId && !m.read
         ).length || 0,
       });
     }
@@ -259,12 +301,13 @@ export async function getChatPatients(psychologistId: string) {
 }
 
 export async function markMessagesRead(senderId: string, receiverId: string) {
-  await supabase
+  const { error } = await supabase
     .from('messages')
     .update({ read: true })
     .eq('sender_id', senderId)
     .eq('receiver_id', receiverId)
     .eq('read', false);
+  if (error) throw error;
 }
 
 // === PROFESSIONAL PROFILE ===
@@ -350,7 +393,7 @@ export async function createBookingByDoctor(data: {
     if (userRows) patientUserId = (userRows as any).id;
   }
   if (!patientUserId) {
-    patientUserId = crypto.randomUUID();
+    throw new Error('Pasien dengan email tersebut tidak ditemukan. Pastikan pasien sudah registrasi.');
   }
   const { data: inserted, error } = await supabase.from('bookings').insert({
     user_id: patientUserId,
@@ -371,5 +414,14 @@ export async function createBookingByDoctor(data: {
     created_at: new Date().toISOString(),
   }).select();
   if (error) throw error;
+  if (patientUserId && inserted?.[0]) {
+    await supabase.rpc('create_notification', {
+      p_user_id: patientUserId,
+      p_psychologist_id: null,
+      p_title: 'Booking Dikonfirmasi',
+      p_message: `Jadwal konsultasi pada ${data.date} pukul ${data.time} telah dibuat oleh psikolog.`,
+      p_type: 'booking',
+    });
+  }
   return inserted?.[0] || null;
 }

@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../../contexts/AuthContext';
+import { supabase } from '../../../lib/supabase';
 import {
   getPsychologistByUserId,
   getChatPatients,
@@ -29,41 +30,68 @@ export default function PortalPesan() {
 
   useEffect(() => {
     if (!user) return;
+    getChatPatients(user.uid).then((pats) => {
+      setPatients(pats);
+    }).finally(() => setDataLoading(false));
     getPsychologistByUserId(user.uid).then((prof) => {
-      if (prof?.id) {
-        setPsychologistId(prof.id);
-        getChatPatients(prof.id).then((pats) => {
-          setPatients(pats);
-        }).finally(() => setDataLoading(false));
-      }
+      if (prof?.id) setPsychologistId(prof.id);
     });
   }, [user]);
 
   useEffect(() => {
-    if (!selectedPatient || !psychologistId) return;
+    if (!selectedPatient || !user) return;
     setMessagesLoading(true);
-    getChatMessages(psychologistId, selectedPatient.id).then((msgs) => {
+    getChatMessages(user.uid, selectedPatient.id).then((msgs) => {
       setMessages(msgs);
-      markMessagesRead(selectedPatient.id, psychologistId);
+      markMessagesRead(selectedPatient.id, user.uid);
       setPatients((prev) =>
         prev.map((p) => (p.id === selectedPatient.id ? { ...p, unread: 0 } : p))
       );
     }).finally(() => setMessagesLoading(false));
-  }, [selectedPatient, psychologistId]);
+  }, [selectedPatient, user]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  useEffect(() => {
+    if (!user || !selectedPatient) return;
+    const channel = supabase
+      .channel('messages-changes')
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages',
+          filter: `or(and(sender_id.eq.${user.uid},receiver_id.eq.${selectedPatient.id}),and(sender_id.eq.${selectedPatient.id},receiver_id.eq.${user.uid}))`
+        },
+        (payload) => {
+          const newMsg = payload.new as any;
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === newMsg.id)) return prev;
+            return [...prev, toCamelCase(newMsg)];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [user, selectedPatient]);
+
+  const toCamelCase = (obj: any) => ({
+    id: obj.id,
+    message: obj.message,
+    senderId: obj.sender_id,
+    senderRole: obj.sender_role,
+    receiverId: obj.receiver_id,
+    read: obj.read,
+    createdAt: obj.created_at,
+  });
+
   const handleSend = async () => {
-    if (!psychologistId || !selectedPatient || !newMessage.trim()) return;
+    if (!user || !selectedPatient || !newMessage.trim()) return;
     setSending(true);
     try {
-      await sendMessageToPatient(psychologistId, selectedPatient.id, newMessage.trim());
-      const updated = await getChatMessages(psychologistId, selectedPatient.id);
-      setMessages(updated);
+      await sendMessageToPatient(user.uid, selectedPatient.id, newMessage.trim());
       setNewMessage('');
-      getChatPatients(psychologistId).then(setPatients);
+      getChatPatients(user.uid).then(setPatients);
     } catch (err) {
       console.error('Send error:', err);
     }
@@ -78,6 +106,8 @@ export default function PortalPesan() {
   };
 
   if (loading || !user) return null;
+
+  const isMyMessage = (m: any) => m.senderId === user.uid || m.senderRole === 'psychologist';
 
   return (
     <PortalLayout title="Messages" doctorName={user?.displayName || 'Dr. Smith'}>
@@ -153,7 +183,7 @@ export default function PortalPesan() {
                 </div>
               ) : (
                 messages.map((m: any, idx: number) => {
-                  const isMe = m.senderId === psychologistId || m.senderRole === 'psychologist';
+                  const isMe = isMyMessage(m);
                   return (
                     <div key={m.id || idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                       <div

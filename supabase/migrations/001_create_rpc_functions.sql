@@ -17,3 +17,15 @@ RETURNS TABLE(psychologist_count BIGINT, session_count BIGINT) AS $$
     (SELECT COUNT(*) FROM psychologists WHERE status = 'active'),
     (SELECT COUNT(*) FROM bookings WHERE status = 'selesai');
 $$ LANGUAGE sql SECURITY DEFINER;
+
+-- RPC function to create notifications (bypasses RLS for cross-user notifications)
+CREATE OR REPLACE FUNCTION create_notification(
+  p_user_id UUID DEFAULT NULL,
+  p_psychologist_id UUID DEFAULT NULL,
+  p_title TEXT DEFAULT '',
+  p_message TEXT DEFAULT '',
+  p_type TEXT DEFAULT 'booking'
+) RETURNS VOID AS $$
+  INSERT INTO notifications (user_id, psychologist_id, title, message, type, read, created_at)
+  VALUES (p_user_id, p_psychologist_id, p_title, p_message, p_type, false, NOW());
+$$ LANGUAGE sql SECURITY DEFINER;

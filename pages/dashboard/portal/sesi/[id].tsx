@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../../../contexts/AuthContext';
 import PortalLayout from '../../../../components/dashboard/portal/Layout';
@@ -12,7 +12,11 @@ export default function PortalSession() {
 
   if (loading || !user || !id) return null;
 
-  const roomName = `PsyOasis-${(id as string).replace(/-/g, '').slice(0, 12)}`;
+  const roomName = useMemo(
+    () => `PsyOasis-${(id as string).replace(/-/g, '').slice(0, 12)}`,
+    [id]
+  );
+  const onLeave = useCallback(() => router.push('/dashboard/portal/jadwal'), [router]);
 
   return (
     <PortalLayout title="Video Session" doctorName={user?.displayName || 'Dr. Smith'}>
@@ -52,7 +56,7 @@ export default function PortalSession() {
             <VideoCall
               roomName={roomName}
               displayName={user?.displayName || 'Doctor'}
-              onLeave={() => router.push('/dashboard/portal/jadwal')}
+                onLeave={onLeave}
             />
           )}
         </div>

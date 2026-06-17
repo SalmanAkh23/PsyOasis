@@ -12,29 +12,41 @@ declare global {
   }
 }
 
-const JITSI_DOMAIN = process.env.NEXT_PUBLIC_JITSI_DOMAIN || 'localhost:8000';
-const JITSI_HTTP = JITSI_DOMAIN.startsWith('localhost') ? 'http' : 'https';
+const DEFAULT_JITSI_DOMAIN = process.env.NEXT_PUBLIC_JITSI_DOMAIN || 'localhost:8000';
 
 export default function VideoCall({ roomName, displayName, onLeave }: VideoCallProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const apiRef = useRef<any>(null);
   const leftRef = useRef(false);
+  const onLeaveRef = useRef(onLeave);
+  onLeaveRef.current = onLeave;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  
+  // State for dynamic Jitsi domain
+  const [jitsiDomain, setJitsiDomain] = useState(DEFAULT_JITSI_DOMAIN);
 
   useEffect(() => {
+    // Dynamically replace localhost with actual IP if accessed via local network
+    let currentDomain = DEFAULT_JITSI_DOMAIN;
+    if (currentDomain.startsWith('localhost') && window.location.hostname !== 'localhost') {
+      currentDomain = `${window.location.hostname}:8000`;
+    }
+    setJitsiDomain(currentDomain);
+    const jitsiHttp = currentDomain.includes('localhost') || currentDomain.match(/^\d+\.\d+\.\d+\.\d+/) ? 'http' : 'https';
+
     leftRef.current = false;
     setLoading(true);
     setError(false);
 
     const script = document.createElement('script');
-    script.src = `${JITSI_HTTP}://${JITSI_DOMAIN}/external_api.js`;
+    script.src = `${jitsiHttp}://${currentDomain}/external_api.js`;
     script.async = true;
 
     script.onload = () => {
       if (!containerRef.current) return;
       try {
-        const api = new window.JitsiMeetExternalAPI(JITSI_DOMAIN, {
+        const api = new window.JitsiMeetExternalAPI(currentDomain, {
           roomName,
           parentNode: containerRef.current,
           userInfo: { displayName },
@@ -64,7 +76,6 @@ export default function VideoCall({ roomName, displayName, onLeave }: VideoCallP
             SHOW_PROMOTIONAL_CLOSE_PAGE: false,
             DISABLE_PRESENCE_STATUS: false,
             DEFAULT_REMOTE_DISPLAY_NAME: 'Partner',
-            DISPLAY_NAME: displayName,
           },
         });
 
@@ -75,7 +86,7 @@ export default function VideoCall({ roomName, displayName, onLeave }: VideoCallP
         api.addListener('readyToClose', () => {
           if (leftRef.current) return;
           leftRef.current = true;
-          onLeave?.();
+          onLeaveRef.current?.();
         });
       } catch {
         setError(true);
@@ -94,7 +105,7 @@ export default function VideoCall({ roomName, displayName, onLeave }: VideoCallP
         script.parentNode.removeChild(script);
       }
     };
-  }, [roomName, displayName, onLeave]);
+  }, [roomName, displayName]);
 
   if (error) {
     return (
@@ -102,7 +113,7 @@ export default function VideoCall({ roomName, displayName, onLeave }: VideoCallP
         <div className="text-center max-w-sm">
           <p className="text-red-400 text-lg font-semibold mb-2">Gagal terhubung ke Jitsi</p>
           <p className="text-white/50 text-sm">Coba buka link ini di tab baru:<br />
-            <a href={`https://${JITSI_DOMAIN}/${roomName}`} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">{JITSI_DOMAIN}/{roomName}</a>
+            <a href={`${jitsiDomain.includes('localhost') || jitsiDomain.match(/^\\d+\\.\\d+\\.\\d+\\.\\d+/) ? 'http' : 'https'}://${jitsiDomain}/${roomName}`} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">{jitsiDomain}/{roomName}</a>
           </p>
         </div>
       </div>

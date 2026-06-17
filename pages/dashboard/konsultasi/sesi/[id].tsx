@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../../../contexts/AuthContext';
 import DashboardLayout from '../../../../components/dashboard/DashboardLayout';
@@ -13,7 +13,11 @@ export default function PatientSession() {
 
   if (loading || !user || !id) return null;
 
-  const roomName = `PsyOasis-${(id as string).replace(/-/g, '').slice(0, 12)}`;
+  const roomName = useMemo(
+    () => `PsyOasis-${(id as string).replace(/-/g, '').slice(0, 12)}`,
+    [id]
+  );
+  const onLeave = useCallback(() => router.push('/dashboard/konsultasi'), [router]);
 
   return (
     <>
@@ -62,7 +66,7 @@ export default function PatientSession() {
               <VideoCall
                 roomName={roomName}
                 displayName={user?.displayName || 'Patient'}
-                onLeave={() => router.push('/dashboard/konsultasi')}
+                onLeave={onLeave}
               />
             )}
           </div>

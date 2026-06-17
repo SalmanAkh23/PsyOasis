@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import DashboardLayout from '../../../components/dashboard/DashboardLayout'
 import { useAuth } from '../../../contexts/AuthContext'
 import { getPsychologists } from '../../../lib/db-psikolog'
+import { getPsychologistReviews } from '../../../lib/db'
 import { ArrowLeftIcon, StarIcon } from '@heroicons/react/24/outline'
 
 const avatarColors = [
@@ -21,6 +22,7 @@ export default function PsikologDetail() {
   const { id } = router.query;
   const [p, setP] = useState<any>(null);
   const [fetching, setFetching] = useState(true);
+  const [reviews, setReviews] = useState<any[]>([]);
 
   useEffect(() => {
     if (!id) return;
@@ -28,6 +30,7 @@ export default function PsikologDetail() {
       const found = list.find((item: any) => item.id === id);
       setP(found || null);
     }).finally(() => setFetching(false));
+    getPsychologistReviews(id as string).then(setReviews).catch(() => {});
   }, [id]);
 
   if (loading || !user || fetching) return null;
@@ -123,6 +126,25 @@ export default function PsikologDetail() {
             </p>
           )}
         </div>
+
+        {reviews.length > 0 && (
+          <div className="bg-white rounded-2xl border border-[#c4c6d4] p-8 mt-6">
+            <h2 className="text-base font-bold text-[#1a1c1e] mb-4 font-['Poppins']">Ulasan ({reviews.length})</h2>
+            <div className="space-y-4">
+              {reviews.map((r: any) => (
+                <div key={r.id} className="pb-4 border-b border-[#c4c6d4]/50 last:border-0 last:pb-0">
+                  <div className="flex items-center gap-1 mb-1">
+                    {[1,2,3,4,5].map(s => (
+                      <span key={s} className={`text-sm ${s <= r.rating ? 'text-amber-500' : 'text-[#c4c6d4]'}`}>★</span>
+                    ))}
+                    <span className="ml-2 text-xs text-[#434652]">{new Date(r.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                  </div>
+                  {r.comment && <p className="text-sm text-[#434652] font-['Inter']">{r.comment}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </DashboardLayout>
     </>
   )

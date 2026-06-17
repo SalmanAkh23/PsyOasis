@@ -19,10 +19,11 @@ export async function getUserById(userId: string) {
 }
 
 export async function updateUserRole(userId: string, role: string) {
-  await supabase
+  const { error } = await supabase
     .from('users')
     .update({ role, updated_at: new Date().toISOString() })
     .eq('id', userId);
+  if (error) throw error;
 }
 
 export async function assignPsychologistRole(email: string, psychologistData?: Record<string, any>) {
@@ -38,12 +39,13 @@ export async function assignPsychologistRole(email: string, psychologistData?: R
   const userRecord = users[0];
   const userId = userRecord.id;
 
-  await supabase
+  const { error: roleError } = await supabase
     .from('users')
     .update({ role: 'psychologist', updated_at: new Date().toISOString() })
     .eq('id', userId);
+  if (roleError) throw roleError;
 
-  await supabase.from('psychologists').upsert({
+  const { error: psyError } = await supabase.from('psychologists').upsert({
     user_id: userId,
     email,
     name: userRecord.display_name || email.split('@')[0],
@@ -53,6 +55,7 @@ export async function assignPsychologistRole(email: string, psychologistData?: R
     status: 'active',
     ...(psychologistData || {}),
   });
+  if (psyError) throw psyError;
 
   return userId;
 }
@@ -148,19 +151,29 @@ export async function getRecentActivity(limitCount = 10) {
 
 export async function toggleUserStatus(userId: string, currentStatus: string) {
   const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-  await supabase
+  const { error } = await supabase
     .from('users')
     .update({ status: newStatus, updated_at: new Date().toISOString() })
     .eq('id', userId);
+  if (error) throw error;
   return newStatus;
 }
 
-export async function deletePsychologist(psychologistId: string) {
-  await supabase
+export async function deletePsychologist(psychologistProfileId: string) {
+  const { data: profile, error: fetchError } = await supabase
+    .from('psychologists')
+    .select('user_id')
+    .eq('id', psychologistProfileId)
+    .single();
+  if (fetchError) throw fetchError;
+  if (!profile) throw new Error('Psychologist not found');
+  const { error: userError } = await supabase
     .from('users')
     .update({ role: 'user', updated_at: new Date().toISOString() })
-    .eq('id', psychologistId);
-  await supabase.from('psychologists').delete().eq('user_id', psychologistId);
+    .eq('id', profile.user_id);
+  if (userError) throw userError;
+  const { error: delError } = await supabase.from('psychologists').delete().eq('id', psychologistProfileId);
+  if (delError) throw delError;
 }
 
 export async function getAllAppointments() {

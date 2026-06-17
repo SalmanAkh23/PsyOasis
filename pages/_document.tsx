@@ -4,6 +4,14 @@ export default function Document() {
   return (
     <Html lang="id">
       <Head>
+        <meta charSet="utf-8" />
+        <meta name="theme-color" content="#002768" />
+        <meta name="description" content="Platform konsultasi psikologi online untuk kesehatan mental Anda" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/logo.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="PsyOasis" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

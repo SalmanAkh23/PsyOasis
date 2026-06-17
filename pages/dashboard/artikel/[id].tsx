@@ -6,6 +6,17 @@ import { useAuth } from '../../../contexts/AuthContext'
 import { getArticleById } from '../../../lib/db'
 import { ArrowLeftIcon, ClockIcon } from '@heroicons/react/24/outline'
 
+function sanitizeHtml(html: string) {
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+    .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+    .replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '')
+    .replace(/on\w+\s*=\s*"[^"]*"/gi, '')
+    .replace(/on\w+\s*=\s*'[^']*'/gi, '')
+    .replace(/javascript\s*:/gi, '');
+}
+
 const categoryColors: Record<string, string> = {
   Kecemasan: 'from-[#002768] to-[#315ab4]',
   'Self-Care': 'from-[#315ab4] to-[#6B9CB5]',
@@ -98,7 +109,7 @@ export default function ArtikelDetail() {
           )}
           <div
             className="prose prose-sm max-w-none text-[#434652] [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-[#1a1c1e] [&_h2]:mt-6 [&_h2]:mb-3 [&_p]:leading-relaxed [&_li]:leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: article.content }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.content) }}
           />
         </div>
       </DashboardLayout>

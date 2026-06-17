@@ -247,8 +247,13 @@ DROP POLICY IF EXISTS notifications_select_own ON notifications;
 DROP POLICY IF EXISTS notifications_select_psychologist ON notifications;
 DROP POLICY IF EXISTS notifications_update_own ON notifications;
 CREATE POLICY notifications_select_own ON notifications FOR SELECT USING (user_id = auth.uid());
-CREATE POLICY notifications_select_psychologist ON notifications FOR SELECT USING (psychologist_id = auth.uid());
+CREATE POLICY notifications_select_psychologist ON notifications FOR SELECT USING (
+  psychologist_id IN (SELECT id FROM psychologists WHERE user_id = auth.uid())
+);
 CREATE POLICY notifications_update_own ON notifications FOR UPDATE USING (user_id = auth.uid());
+CREATE POLICY notifications_update_psychologist ON notifications FOR UPDATE USING (
+  psychologist_id IN (SELECT id FROM psychologists WHERE user_id = auth.uid())
+);
 
 -- Moods: own only
 DROP POLICY IF EXISTS moods_select_own ON moods;
@@ -370,7 +375,37 @@ RETURNS TABLE(booked_time TEXT) AS $$
     AND date = p_date
     AND status != 'dibatalkan'
   ORDER BY time;
-  $$ LANGUAGE sql SECURITY DEFINER;
+$$ LANGUAGE sql SECURITY DEFINER;
+
+-- RPC function to create notifications (bypasses RLS for cross-user notifications)
+CREATE OR REPLACE FUNCTION create_notification(
+  p_user_id UUID DEFAULT NULL,
+  p_psychologist_id UUID DEFAULT NULL,
+  p_title TEXT DEFAULT '',
+  p_message TEXT DEFAULT '',
+  p_type TEXT DEFAULT 'booking'
+) RETURNS VOID AS $$
+  INSERT INTO notifications (user_id, psychologist_id, title, message, type, read, created_at)
+  VALUES (p_user_id, p_psychologist_id, p_title, p_message, p_type, false, NOW());
+$$ LANGUAGE sql SECURITY DEFINER;
+
+-- Auto-update psychologist rating when a review is inserted/updated/deleted
+CREATE OR REPLACE FUNCTION update_psychologist_rating()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE psychologists
+  SET
+    rating = COALESCE((SELECT ROUND(AVG(rating)::numeric, 1) FROM reviews WHERE psychologist_id = COALESCE(NEW.psychologist_id, OLD.psychologist_id)), 0),
+    reviews_count = COALESCE((SELECT COUNT(*) FROM reviews WHERE psychologist_id = COALESCE(NEW.psychologist_id, OLD.psychologist_id)), 0)
+  WHERE id = COALESCE(NEW.psychologist_id, OLD.psychologist_id);
+  RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS trg_review_rating ON reviews;
+CREATE TRIGGER trg_review_rating
+  AFTER INSERT OR UPDATE OR DELETE ON reviews
+  FOR EACH ROW EXECUTE FUNCTION update_psychologist_rating();
 
 -- RPC function for landing page stats (bypasses RLS for public counts)
 CREATE OR REPLACE FUNCTION get_landing_stats()

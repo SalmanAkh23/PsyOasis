@@ -8,13 +8,13 @@ import { useToast } from '../../components/ui/Toast'
 import {
   VideoCameraIcon,
   MagnifyingGlassIcon,
-  FunnelIcon,
 } from '@heroicons/react/24/outline'
 
 const statusStyles: Record<string, { label: string, classes: string }> = {
   menunggu: { label: 'Menunggu', classes: 'bg-amber-50 text-amber-600' },
   dikonfirmasi: { label: 'Dikonfirmasi', classes: 'bg-emerald-50 text-emerald-600' },
   selesai: { label: 'Selesai', classes: 'bg-slate-50 text-slate-500' },
+  dibatalkan: { label: 'Dibatalkan', classes: 'bg-red-50 text-red-600' },
 }
 
 export default function KonsultasiPage() {
@@ -39,10 +39,10 @@ export default function KonsultasiPage() {
     if (q) setSearch(q);
   }, [router.query.q]);
 
-  const handleCancel = async (bookingId: string) => {
+  const handleCancel = async (booking: any) => {
     try {
-      await cancelBooking(bookingId);
-      setBookings(prev => prev.filter(b => b.id !== bookingId));
+      await cancelBooking(booking.id, booking.psychologistId, user?.displayName);
+      setBookings(prev => prev.filter(b => b.id !== booking.id));
       showToast('success', 'Konsultasi berhasil dibatalkan');
     } catch {
       showToast('error', 'Gagal membatalkan konsultasi');
@@ -140,7 +140,7 @@ export default function KonsultasiPage() {
                       )}
                       {(b.status === 'menunggu') && (
                         <button
-                          onClick={(e) => { e.stopPropagation(); handleCancel(b.id); }}
+                          onClick={(e) => { e.stopPropagation(); handleCancel(b); }}
                           className="px-3 py-1 rounded-full text-[10px] font-semibold font-['Inter'] bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                         >
                           Batalkan

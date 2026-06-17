@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getUnreadNotificationCount } from '../../../lib/db';
+import { supabase } from '../../../lib/supabase';
 import { getPsychologistByUserId, getPsychologistProfile } from '../../../lib/db-psikolog';
 
 interface Props {
@@ -13,24 +14,36 @@ export default function PortalTopbar({ doctorName }: Props) {
   const { user } = useAuth() as any;
   const [unreadCount, setUnreadCount] = useState(0);
   const [photoUrl, setPhotoUrl] = useState('');
+  const [psychologistId, setPsychologistId] = useState<string | null>(null);
   const displayName = doctorName || user?.displayName || user?.name || 'Dr. Smith';
   const initial = displayName.charAt(0) || 'D';
 
-  const fetchUnread = () => {
+  const fetchUnread = async () => {
     if (!user) return;
-    getUnreadNotificationCount(user.uid).then(setUnreadCount);
+    let count = await getUnreadNotificationCount(user.uid);
+    if (psychologistId) {
+      const { count: pendingCount } = await supabase
+        .from('bookings')
+        .select('*', { count: 'exact', head: true })
+        .eq('psychologist_id', psychologistId)
+        .eq('status', 'menunggu');
+      count += pendingCount || 0;
+    }
+    setUnreadCount(count);
   };
 
   useEffect(() => {
     fetchUnread();
     const interval = setInterval(fetchUnread, 30000);
     return () => clearInterval(interval);
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, psychologistId]);
 
   useEffect(() => {
     if (!user) return;
     getPsychologistByUserId(user.uid).then((prof) => {
       if (prof?.id) {
+        setPsychologistId(prof.id);
         getPsychologistProfile(prof.id).then((p) => {
           if (p?.photoUrl) setPhotoUrl(p.photoUrl);
         });
