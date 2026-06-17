@@ -414,3 +414,35 @@ RETURNS TABLE(psychologist_count BIGINT, session_count BIGINT) AS $$
     (SELECT COUNT(*) FROM psychologists WHERE status = 'active'),
     (SELECT COUNT(*) FROM bookings WHERE status = 'selesai');
 $$ LANGUAGE sql SECURITY DEFINER;
+
+-- =============================================================
+-- Performance Indexes
+-- =============================================================
+
+CREATE INDEX IF NOT EXISTS idx_bookings_user_id ON bookings(user_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_psychologist_id ON bookings(psychologist_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_date ON bookings(date);
+CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
+CREATE INDEX IF NOT EXISTS idx_bookings_psychologist_date ON bookings(psychologist_id, date);
+CREATE INDEX IF NOT EXISTS idx_bookings_user_status ON bookings(user_id, status);
+
+CREATE INDEX IF NOT EXISTS idx_messages_sender_id ON messages(sender_id);
+CREATE INDEX IF NOT EXISTS idx_messages_receiver_id ON messages(receiver_id);
+CREATE INDEX IF NOT EXISTS idx_messages_sender_receiver ON messages(sender_id, receiver_id);
+CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_psychologist_id ON notifications(psychologist_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(read);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_read ON notifications(user_id, read);
+
+CREATE INDEX IF NOT EXISTS idx_psychologists_user_id ON psychologists(user_id);
+CREATE INDEX IF NOT EXISTS idx_psychologists_status ON psychologists(status);
+
+CREATE INDEX IF NOT EXISTS idx_reviews_psychologist_id ON reviews(psychologist_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_user_id ON reviews(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_articles_created_at ON articles(created_at);
+
+CREATE INDEX IF NOT EXISTS idx_moods_user_id ON moods(user_id);
+CREATE INDEX IF NOT EXISTS idx_moods_date ON moods(date);

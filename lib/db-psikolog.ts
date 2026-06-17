@@ -360,15 +360,6 @@ export async function getBookedTimes(psychologistId: string, date: string) {
   return ((data || []).map((r: any) => r.time)) as string[];
 }
 
-export async function getPsychologists() {
-  const { data } = await supabase
-    .from('psychologists')
-    .select('*')
-    .eq('status', 'active')
-    .order('name', { ascending: true });
-  return toCamelCase(data || []);
-}
-
 export async function createBookingByDoctor(data: {
   psychologistId: string
   patientName: string

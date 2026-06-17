@@ -3,8 +3,7 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import DashboardLayout from '../../../components/dashboard/DashboardLayout'
 import { useAuth } from '../../../contexts/AuthContext'
-import { getPsychologists } from '../../../lib/db-psikolog'
-import { getPsychologistReviews } from '../../../lib/db'
+import { getPsychologists, getPsychologistReviews } from '../../../lib/db'
 import { ArrowLeftIcon, StarIcon } from '@heroicons/react/24/outline'
 
 const avatarColors = [

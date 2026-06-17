@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useState } from 'react';
-import { getPsychologists } from '../../../lib/db-psikolog';
+import { getPsychologists } from '../../../lib/db';
 import { services } from '../../../lib/services';
 
 const avatarColors = [
